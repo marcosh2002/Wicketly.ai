@@ -1,0 +1,13 @@
+flask
+flask-cors
+pandas
+scikit-learn
+xgboost
+joblib
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+python-multipart
+email-validator
+requests

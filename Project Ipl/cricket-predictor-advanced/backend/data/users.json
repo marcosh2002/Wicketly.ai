@@ -1,0 +1,46 @@
+[
+  {
+    "id": "user-001",
+    "username": "Marcosh69",
+    "display_name": "Marco",
+    "created": "2025-11-17T00:00:00",
+    "referral_code": "MARCO2025",
+    "referred_by": null,
+    "tokens": 100,
+    "salt": "1064c6cef9224dde835590a1dadd3a09",
+    "password_hash": "8bd630d1d468a6d86d130855feac4ea7eaa69dc04077264d18d255bf019d9f28"
+  },
+  {
+    "id": "test-user-001",
+    "username": "testuser",
+    "display_name": "Test User",
+    "created": "2025-11-17T00:00:00",
+    "referral_code": "TEST1234",
+    "referred_by": null,
+    "tokens": 100,
+    "salt": "abc123",
+    "password_hash": "placeholder"
+  },
+  {
+    "id": "11a1a8ed-aa75-4568-850b-bc90aef19166",
+    "username": "ajay",
+    "display_name": "Ajay Roy",
+    "created": "2025-11-16T21:51:33.601694",
+    "referral_code": "9FC269E4",
+    "referred_by": null,
+    "tokens": 150,
+    "salt": "778aeffc9fd14e4fbbe8277df2419568",
+    "password_hash": "b107cc6ea2216709bdfce7f501f341773d0bc742968540ffdf2cfe8f9b2ec68d"
+  },
+  {
+    "id": "3a234a38-1bcb-48f4-9fce-8902acdd6ea7",
+    "username": "Dip11",
+    "display_name": "Dip Gupta",
+    "created": "2025-11-16T21:54:53.322901",
+    "referral_code": "0E68A2B1",
+    "referred_by": "ajay",
+    "tokens": 130,
+    "salt": "30cfe03f58b543c0b12ab4a5d9b9c529",
+    "password_hash": "3d78865ea8a2972930218dc5ec8ef9c65a83cbd1e78333ab5cb85bf78ff5bbdd"
+  }
+]

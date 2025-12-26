@@ -1,0 +1,14 @@
+digraph G {
+	rankdir=LR size="8,5"
+	A [label="React Frontend"]
+	B [label="Backend API (FastAPI)"]
+	C [label="Auth Service (FastAPI)"]
+	D [label="SQLite DB (cricket_auth.db)"]
+	E [label="Match/Stats Data Files (CSV/JSON)"]
+	F [label="Backup Script"]
+	A -> B [label=HTTP]
+	B -> C [label=HTTP]
+	C -> D [label=SQL]
+	B -> E [label="File IO"]
+	F -> D [label="File Copy"]
+}
