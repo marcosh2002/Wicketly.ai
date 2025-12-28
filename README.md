@@ -315,88 +315,83 @@ FRONTEND_URL=http://localhost:3000
 
 ## 📁 Project Structure
 
-Project Ipl (2)/
-└── docs/
-    └── images/
-        ├── 01-homepage.png
-        ├── 02-match-prediction.png
-        ├── 03-teams-page.png
-        └── 04-features.png        Project Ipl (2)/
-        └── docs/
-            └── images/
-                ├── 01-homepage.png
-                ├── 02-match-prediction.png
-                ├── 03-teams-page.png
-                └── 04-features.png                Project Ipl (2)/
-                └── docs/
-                    └── images/
-                        ├── 01-homepage.png
-                        ├── 02-match-prediction.png
-                        ├── 03-teams-page.png
-                        └── 04-features.png```
-Project Ipl/
-├── README.md                                 # Main project documentation
-├── SOLUTION_SUMMARY.md                       # Solution overview
-├── UNIFIED_DATABASE_SYSTEM.md                # Database documentation
-├── setup_advanced_project.py                 # Project setup script
+```
+Wicketly.ai/
+├── docs/
+│   └── images/                              # Project screenshots & diagrams
+│       ├── 1hompage.png
+│       ├── 2match-prediction.png
+│       ├── 3teams-page.png
+│       └── 4features.png
 │
-├── cricket-predictor-advanced/
-│   ├── Dockerfile                            # Docker configuration
-│   ├── Procfile                              # Deployment configuration
+├── Project Ipl/
+│   ├── README.md                            # Project documentation
+│   ├── setup_advanced_project.py            # Setup script
 │   │
-│   ├── backend/
-│   │   ├── app.py                           # Flask main application
-│   │   ├── api.py                           # FastAPI endpoints
-│   │   ├── model.py                         # ML model implementation
-│   │   ├── scraper.py                       # Cricket data scraper
-│   │   ├── merge_matches.py                 # Match data merger
-│   │   ├── pvp_utils.py                     # Player vs Player utilities
-│   │   ├── unified_db.py                    # Database connection
-│   │   ├── email_service.py                 # Email notification service
-│   │   ├── run_services.py                  # Service runner
-│   │   ├── start_apis.py                    # API starter
-│   │   ├── requirements.txt                 # Python dependencies
+│   ├── cricket-predictor-advanced/
+│   │   ├── Dockerfile                       # Docker configuration
+│   │   ├── Procfile                         # Deployment config
 │   │   │
-│   │   ├── data/                            # Historical cricket data
-│   │   │   ├── Best Bowling Economy Innings - [Years].csv
-│   │   │   ├── Best Bowling Strike Rate Innings - [Years].csv
-│   │   │   └── ... (other statistical CSVs)
+│   │   ├── backend/                         # Flask/FastAPI Backend
+│   │   │   ├── api.py                       # FastAPI endpoints
+│   │   │   ├── app.py                       # Flask main app
+│   │   │   ├── model.py                     # ML model (XGBoost)
+│   │   │   ├── scraper.py                   # Cricket data scraper
+│   │   │   ├── merge_matches.py             # Match data merger
+│   │   │   ├── unified_db.py                # SQLAlchemy ORM
+│   │   │   ├── email_service.py             # Email notifications
+│   │   │   ├── pvp_utils.py                 # Player vs Player logic
+│   │   │   ├── requirements.txt             # Python dependencies
+│   │   │   │
+│   │   │   ├── data/                        # Cricket datasets
+│   │   │   │   └── [CSV files with historical IPL data]
+│   │   │   │
+│   │   │   └── scripts/                     # Utility scripts
 │   │   │
-│   │   ├── scripts/                         # Utility scripts
-│   │   └── tests/                           # Backend tests
+│   │   └── ipl-frontend/                    # React Frontend
+│   │       ├── package.json                 # Node dependencies
+│   │       ├── public/                      # Static assets
+│   │       │   ├── index.html
+│   │       │   ├── my-logo.png
+│   │       │   └── [images & team logos]
+│   │       │
+│   │       └── src/
+│   │           ├── App.js                   # Main component
+│   │           ├── index.js                 # React entry point
+│   │           │
+│   │           ├── pages/                   # Page components
+│   │           │   ├── Home.js
+│   │           │   ├── Matches.js
+│   │           │   ├── Players.js
+│   │           │   ├── Teams.js
+│   │           │   ├── PredictForm.js
+│   │           │   ├── Points.js
+│   │           │   ├── Spin.js
+│   │           │   └── PVP.js
+│   │           │
+│   │           ├── components/              # Reusable components
+│   │           │   ├── Navbar.js
+│   │           │   ├── AnimatedBackground.js
+│   │           │   ├── AuthModal.js
+│   │           │   ├── HeroSection.js
+│   │           │   ├── WelcomeBanner.js
+│   │           │   └── [other components]
+│   │           │
+│   │           ├── context/                 # State management
+│   │           │   └── AuthContext.js
+│   │           │
+│   │           ├── hooks/                   # Custom hooks
+│   │           ├── data/                    # Static data
+│   │           └── styles/                  # CSS files
 │   │
-│   └── ipl-frontend/
-│       ├── package.json                     # Node dependencies
-│       ├── public/                          # Static assets
-│       │   ├── index.html                   # HTML entry point
-│       │   ├── manifest.json                # PWA manifest
-│       │   └── assets/                      # Images and media
-│       │
-│       └── src/
-│           ├── App.js                       # Main app component
-│           ├── index.js                     # React entry point
-│           ├── App.css                      # Global styles
-│           │
-│           ├── pages/                       # Page components
-│           │   ├── Home.js
-│           │   ├── Matches.js
-│           │   ├── Players.js
-│           │   ├── Teams.js
-│           │   ├── Predict.js
-│           │   ├── Points.js
-│           │   └── ... (other pages)
-│           │
-│           ├── components/                  # Reusable components
-│           │   ├── Navigation
-│           │   ├── Header
-│           │   ├── Footer
-│           │   ├── Cards
-│           │   └── ... (other components)
-│           │
-│           ├── context/                     # React Context API
-│           ├── hooks/                       # Custom hooks
-│           ├── data/                        # Static data
-│           └── tests/                       # Frontend tests
+│   └── docs/                                # Documentation
+│       └── images/                          # Supporting images
+│
+├── .gitignore
+├── CONTRIBUTING.md                          # Contributing guidelines
+├── LICENSE                                  # Project license
+└── README.md                                # This file
+```
 
 ```
 
