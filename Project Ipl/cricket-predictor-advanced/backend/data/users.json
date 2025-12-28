@@ -17,9 +17,15 @@
     "created": "2025-11-17T00:00:00",
     "referral_code": "TEST1234",
     "referred_by": null,
-    "tokens": 80,
+    "tokens": 130,
     "salt": "abc123",
-    "password_hash": "placeholder"
+    "password_hash": "placeholder",
+    "spin_data": {
+      "date": "2025-12-28",
+      "count": 1,
+      "last_reward": 50,
+      "last_spin": "2025-12-28T09:36:50.842192"
+    }
   },
   {
     "id": "11a1a8ed-aa75-4568-850b-bc90aef19166",
