@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🏏 Wicketly.AI - Cricket Analytics & Prediction Platform
 
 > **Let's Change The Cricket Future**
@@ -651,3 +652,7 @@ This project is distributed under the **MIT License**. See the [LICENSE](LICENSE
 [GitHub](https://github.com/yourusername/wicketly-ai) • [Website](https://wicketly.ai) • [Issues](https://github.com/yourusername/wicketly-ai/issues)
 
 </div>
+=======
+# Wicketly.ai
+An Al-Driven Cricket Match Outcome Prediction Platform Using XGBoost and Scalable Full- Stack Architecture
+>>>>>>> faf77bc8c7f49e3b6fd1cc4d1c5490e841fcbffc
