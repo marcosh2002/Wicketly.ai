@@ -110,6 +110,10 @@ const AnimatedBackground = memo(() => {
             y2={line.y2}
             stroke="url(#neuralGrad)"
             strokeWidth="1"
+            style={{
+              willChange: "opacity",
+              WebkitFontSmoothing: "antialiased",
+            }}
             animate={{
               opacity: [0.2, 0.5, 0.2],
               x1: [line.x1, line.x1Target],
@@ -131,6 +135,10 @@ const AnimatedBackground = memo(() => {
             cy={node.cy}
             r="3"
             fill="#10b981"
+            style={{
+              willChange: "opacity",
+              WebkitFontSmoothing: "antialiased",
+            }}
             animate={{
               opacity: [0.3, 0.8, 0.3],
               r: [3, 5, 3],
@@ -164,6 +172,9 @@ const AnimatedBackground = memo(() => {
               top: `${light.top}%`,
               left: `${light.left}%`,
               pointerEvents: "none",
+              willChange: "opacity, transform",
+              transform: "translateZ(0)",
+              backfaceVisibility: "hidden",
             }}
             animate={{
               opacity: [0.3, 0.7, 0.3],
@@ -198,6 +209,9 @@ const AnimatedBackground = memo(() => {
               top: `${particle.top}%`,
               left: `${particle.left}%`,
               pointerEvents: "none",
+              willChange: "transform, opacity",
+              transform: "translateZ(0)",
+              backfaceVisibility: "hidden",
             }}
             animate={{
               y: [-20, particle.yTarget],
@@ -227,6 +241,10 @@ const AnimatedBackground = memo(() => {
       zIndex: -1,
       overflow: "hidden",
       pointerEvents: "none",
+      willChange: "transform",
+      transform: "translateZ(0)",
+      backfaceVisibility: "hidden",
+      perspective: "1000px",
     }}>
       {/* Neural Network */}
       <NeuralNetwork />
