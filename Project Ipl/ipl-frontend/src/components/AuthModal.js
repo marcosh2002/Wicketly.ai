@@ -408,9 +408,11 @@ export default function AuthModal({
               padding: "40px",
               maxWidth: "500px",
               width: "90%",
-              boxShadow: "0 25px 80px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.1)",
-              border: "1px solid rgba(255, 255, 255, 0.5)",
-              position: "relative"
+              boxShadow: "0 25px 80px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.8)",
+              border: "2px solid rgba(255, 255, 255, 0.6)",
+              outline: "1px solid rgba(30, 42, 120, 0.1)",
+              position: "relative",
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
             }}
           >
             {/* Close Button */}
@@ -420,11 +422,28 @@ export default function AuthModal({
                 position: "absolute",
                 top: "15px",
                 right: "15px",
-                background: "none",
-                border: "none",
+                background: "rgba(0, 0, 0, 0.05)",
+                border: "1px solid rgba(0, 0, 0, 0.1)",
+                borderRadius: "8px",
                 cursor: "pointer",
                 fontSize: "24px",
-                color: "#999"
+                color: "#666",
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(255, 0, 0, 0.1)";
+                e.currentTarget.style.color = "#c62828";
+                e.currentTarget.style.transform = "scale(1.1) rotate(90deg)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(0, 0, 0, 0.05)";
+                e.currentTarget.style.color = "#666";
+                e.currentTarget.style.transform = "scale(1) rotate(0deg)";
               }}
             >
               <Close />
@@ -469,7 +488,7 @@ export default function AuthModal({
                       transform: "translateY(-50%)",
                       color: fieldValidation.fullName === false ? "#c62828" : fieldValidation.fullName ? "#2e7d32" : "#999",
                       fontSize: "20px",
-                      transition: "color 0.3s"
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                     }} />
                     <input
                       type="text"
@@ -485,13 +504,14 @@ export default function AuthModal({
                         fontSize: "14px",
                         fontFamily: "inherit",
                         boxSizing: "border-box",
-                        transition: "all 0.3s",
-                        outline: "none"
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.fullName === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.fullName ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
                       }}
                       onFocus={(e) => {
                         if (fieldValidation.fullName === null) {
                           e.target.style.borderColor = "#00c6ff";
-                          e.target.style.boxShadow = "0 0 0 3px rgba(0, 198, 255, 0.1)";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
                         }
                       }}
                       onBlur={(e) => {
@@ -502,17 +522,30 @@ export default function AuthModal({
                       }}
                     />
                     {fieldValidation.fullName !== null && (
-                      <div style={{
-                        position: "absolute",
-                        right: "14px",
-                        top: "50%",
-                        transform: "translateY(-50%)"
-                      }}>
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
                         {fieldValidation.fullName ? 
-                          <CheckCircle style={{ color: "#2e7d32", fontSize: "20px" }} /> :
-                          <ErrorIcon style={{ color: "#c62828", fontSize: "20px" }} />
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
                         }
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </motion.div>
@@ -539,7 +572,7 @@ export default function AuthModal({
                       transform: "translateY(-50%)",
                       color: fieldValidation.username === false ? "#c62828" : fieldValidation.username ? "#2e7d32" : "#999",
                       fontSize: "20px",
-                      transition: "color 0.3s"
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                     }} />
                     <input
                       type="text"
@@ -555,13 +588,14 @@ export default function AuthModal({
                         fontSize: "14px",
                         fontFamily: "inherit",
                         boxSizing: "border-box",
-                        transition: "all 0.3s",
-                        outline: "none"
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.username === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.username ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
                       }}
                       onFocus={(e) => {
                         if (fieldValidation.username === null) {
                           e.target.style.borderColor = "#00c6ff";
-                          e.target.style.boxShadow = "0 0 0 3px rgba(0, 198, 255, 0.1)";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
                         }
                       }}
                       onBlur={(e) => {
@@ -572,17 +606,30 @@ export default function AuthModal({
                       }}
                     />
                     {fieldValidation.username !== null && (
-                      <div style={{
-                        position: "absolute",
-                        right: "14px",
-                        top: "50%",
-                        transform: "translateY(-50%)"
-                      }}>
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
                         {fieldValidation.username ? 
-                          <CheckCircle style={{ color: "#2e7d32", fontSize: "20px" }} /> :
-                          <ErrorIcon style={{ color: "#c62828", fontSize: "20px" }} />
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
                         }
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </motion.div>
@@ -609,7 +656,7 @@ export default function AuthModal({
                       transform: "translateY(-50%)",
                       color: fieldValidation.email === false ? "#c62828" : fieldValidation.email ? "#2e7d32" : "#999",
                       fontSize: "20px",
-                      transition: "color 0.3s"
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                     }} />
                     <input
                       type="email"
@@ -625,13 +672,14 @@ export default function AuthModal({
                         fontSize: "14px",
                         fontFamily: "inherit",
                         boxSizing: "border-box",
-                        transition: "all 0.3s",
-                        outline: "none"
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.email === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.email ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
                       }}
                       onFocus={(e) => {
                         if (fieldValidation.email === null) {
                           e.target.style.borderColor = "#00c6ff";
-                          e.target.style.boxShadow = "0 0 0 3px rgba(0, 198, 255, 0.1)";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
                         }
                       }}
                       onBlur={(e) => {
@@ -642,17 +690,30 @@ export default function AuthModal({
                       }}
                     />
                     {fieldValidation.email !== null && (
-                      <div style={{
-                        position: "absolute",
-                        right: "14px",
-                        top: "50%",
-                        transform: "translateY(-50%)"
-                      }}>
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
                         {fieldValidation.email ? 
-                          <CheckCircle style={{ color: "#2e7d32", fontSize: "20px" }} /> :
-                          <ErrorIcon style={{ color: "#c62828", fontSize: "20px" }} />
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
                         }
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </motion.div>
@@ -679,7 +740,7 @@ export default function AuthModal({
                       transform: "translateY(-50%)",
                       color: fieldValidation.password === false ? "#c62828" : fieldValidation.password ? "#2e7d32" : "#999",
                       fontSize: "20px",
-                      transition: "color 0.3s"
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                     }} />
                     <input
                       type={showPassword ? "text" : "password"}
@@ -695,13 +756,14 @@ export default function AuthModal({
                         fontSize: "14px",
                         fontFamily: "inherit",
                         boxSizing: "border-box",
-                        transition: "all 0.3s",
-                        outline: "none"
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.password === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.password ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
                       }}
                       onFocus={(e) => {
                         if (fieldValidation.password === null) {
                           e.target.style.borderColor = "#00c6ff";
-                          e.target.style.boxShadow = "0 0 0 3px rgba(0, 198, 255, 0.1)";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
                         }
                       }}
                       onBlur={(e) => {
@@ -725,8 +787,11 @@ export default function AuthModal({
                         padding: 0,
                         display: "flex",
                         alignItems: "center",
-                        color: "#999"
+                        color: "#999",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                       }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = "#00c6ff"}
+                      onMouseLeave={(e) => e.currentTarget.style.color = "#999"}
                     >
                       {showPassword ? 
                         <VisibilityOff style={{ fontSize: "20px" }} /> : 
@@ -758,7 +823,7 @@ export default function AuthModal({
                       transform: "translateY(-50%)",
                       color: fieldValidation.confirmPassword === false ? "#c62828" : fieldValidation.confirmPassword ? "#2e7d32" : "#999",
                       fontSize: "20px",
-                      transition: "color 0.3s"
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                     }} />
                     <input
                       type={showConfirmPassword ? "text" : "password"}
@@ -774,13 +839,14 @@ export default function AuthModal({
                         fontSize: "14px",
                         fontFamily: "inherit",
                         boxSizing: "border-box",
-                        transition: "all 0.3s",
-                        outline: "none"
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.confirmPassword === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.confirmPassword ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
                       }}
                       onFocus={(e) => {
                         if (fieldValidation.confirmPassword === null) {
                           e.target.style.borderColor = "#00c6ff";
-                          e.target.style.boxShadow = "0 0 0 3px rgba(0, 198, 255, 0.1)";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
                         }
                       }}
                       onBlur={(e) => {
@@ -804,8 +870,11 @@ export default function AuthModal({
                         padding: 0,
                         display: "flex",
                         alignItems: "center",
-                        color: "#999"
+                        color: "#999",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                       }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = "#00c6ff"}
+                      onMouseLeave={(e) => e.currentTarget.style.color = "#999"}
                     >
                       {showConfirmPassword ? 
                         <VisibilityOff style={{ fontSize: "20px" }} /> : 
@@ -837,7 +906,7 @@ export default function AuthModal({
                       transform: "translateY(-50%)",
                       color: fieldValidation.referralCode === false ? "#c62828" : fieldValidation.referralCode ? "#2e7d32" : "#999",
                       fontSize: "20px",
-                      transition: "color 0.3s"
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                     }} />
                     <input
                       type="text"
@@ -853,13 +922,14 @@ export default function AuthModal({
                         fontSize: "14px",
                         fontFamily: "inherit",
                         boxSizing: "border-box",
-                        transition: "all 0.3s",
-                        outline: "none"
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.referralCode === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.referralCode ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
                       }}
                       onFocus={(e) => {
                         if (fieldValidation.referralCode === null) {
                           e.target.style.borderColor = "#00c6ff";
-                          e.target.style.boxShadow = "0 0 0 3px rgba(0, 198, 255, 0.1)";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
                         }
                       }}
                       onBlur={(e) => {
@@ -870,17 +940,30 @@ export default function AuthModal({
                       }}
                     />
                     {fieldValidation.referralCode !== null && (
-                      <div style={{
-                        position: "absolute",
-                        right: "14px",
-                        top: "50%",
-                        transform: "translateY(-50%)"
-                      }}>
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
                         {fieldValidation.referralCode ? 
-                          <CheckCircle style={{ color: "#2e7d32", fontSize: "20px" }} /> :
-                          <ErrorIcon style={{ color: "#c62828", fontSize: "20px" }} />
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
                         }
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </motion.div>
@@ -907,7 +990,7 @@ export default function AuthModal({
                       fontSize: "13px",
                       fontWeight: 600,
                       textDecoration: "none",
-                      transition: "color 0.3s"
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                     }}
                     onMouseEnter={(e) => e.target.style.color = "#1e2a78"}
                     onMouseLeave={(e) => e.target.style.color = "#00c6ff"}
@@ -942,7 +1025,7 @@ export default function AuthModal({
                       fontSize: "13px",
                       fontWeight: 600,
                       textDecoration: "none",
-                      transition: "color 0.3s"
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                     }}
                     onMouseEnter={(e) => e.target.style.color = "#1e2a78"}
                     onMouseLeave={(e) => e.target.style.color = "#00c6ff"}
@@ -971,7 +1054,7 @@ export default function AuthModal({
                     gap: "10px"
                   }}
                 >
-                  <ErrorIcon style={{ fontSize: "20px" }} />
+                  <ErrorIcon style={{ fontSize: "22px", filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))" }} />
                   <span>{error}</span>
                 </motion.div>
               )}
@@ -996,7 +1079,7 @@ export default function AuthModal({
                     whiteSpace: "pre-line"
                   }}
                 >
-                  <CheckCircle style={{ fontSize: "20px" }} />
+                  <CheckCircle style={{ fontSize: "22px", filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))" }} />
                   <span>{success}</span>
                 </motion.div>
               )}
@@ -1019,7 +1102,7 @@ export default function AuthModal({
                   fontSize: "16px",
                   fontWeight: 700,
                   cursor: loading ? "not-allowed" : "pointer",
-                  transition: "all 0.3s",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                   marginBottom: "15px",
                   boxShadow: loading ? "none" : "0 4px 12px rgba(0, 198, 255, 0.2)",
                   position: "relative",
