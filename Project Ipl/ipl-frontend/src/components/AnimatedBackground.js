@@ -1,10 +1,38 @@
-import React, { useMemo, memo } from "react";
+import React, { useMemo, memo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const AnimatedBackground = memo(() => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth < 1024 && window.innerWidth >= 768);
+
+  // Detect screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width < 1024 && width >= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Determine animation counts based on device type
+  const getAnimationCounts = () => {
+    if (isMobile) {
+      return { lines: 6, nodes: 4, lights: 6, particles: 12 };
+    }
+    if (isTablet) {
+      return { lines: 10, nodes: 6, lights: 9, particles: 18 };
+    }
+    return { lines: 15, nodes: 8, lights: 12, particles: 25 };
+  };
+
+  const counts = getAnimationCounts();
+
   // Generate neural network coordinates once
   const neuralLines = useMemo(() => {
-    return [...Array(15)].map((_, i) => ({
+    return [...Array(counts.lines)].map((_, i) => ({
       id: i,
       x1: Math.random() * 1000,
       y1: Math.random() * 1000,
@@ -12,42 +40,42 @@ const AnimatedBackground = memo(() => {
       y2: Math.random() * 1000,
       x1Target: Math.random() * 1000,
       x2Target: Math.random() * 1000,
-      duration: 6 + Math.random() * 4,
+      duration: isMobile ? 8 + Math.random() * 4 : 6 + Math.random() * 4,
     }));
-  }, []);
+  }, [counts.lines, isMobile]);
 
   const neuralNodes = useMemo(() => {
-    return [...Array(8)].map((_, i) => ({
+    return [...Array(counts.nodes)].map((_, i) => ({
       id: i,
       cx: Math.random() * 1000,
       cy: Math.random() * 1000,
-      duration: 3 + Math.random() * 3,
+      duration: isMobile ? 4 + Math.random() * 4 : 3 + Math.random() * 3,
     }));
-  }, []);
+  }, [counts.nodes, isMobile]);
 
   const stadiumLights = useMemo(() => {
-    return [...Array(12)].map((_, i) => ({
+    return [...Array(counts.lights)].map((_, i) => ({
       id: i,
       top: (i * 25) % 100,
       left: (i * 30) % 100,
-      duration: 4 + Math.random() * 3,
-      delay: i * 0.4,
+      duration: isMobile ? 5 + Math.random() * 3 : 4 + Math.random() * 3,
+      delay: i * (isMobile ? 0.5 : 0.4),
     }));
-  }, []);
+  }, [counts.lights, isMobile]);
 
   const particles = useMemo(() => {
-    return [...Array(25)].map((_, i) => ({
+    return [...Array(counts.particles)].map((_, i) => ({
       id: i,
-      size: 2 + Math.random() * 4,
+      size: 2 + Math.random() * (isMobile ? 3 : 4),
       top: Math.random() * 100,
       left: Math.random() * 100,
-      yTarget: Math.random() * 400 - 200,
-      xTarget: Math.random() * 100 - 50,
-      duration: 5 + Math.random() * 5,
-      delay: i * 0.15,
+      yTarget: Math.random() * (isMobile ? 250 : 400) - (isMobile ? 125 : 200),
+      xTarget: Math.random() * (isMobile ? 60 : 100) - (isMobile ? 30 : 50),
+      duration: isMobile ? 7 + Math.random() * 5 : 5 + Math.random() * 5,
+      delay: i * (isMobile ? 0.2 : 0.15),
       opacity: 0.3 + Math.random() * 0.5,
     }));
-  }, []);
+  }, [counts.particles, isMobile]);
 
   // Neural Network Animation Component
   const NeuralNetwork = () => {
@@ -59,9 +87,11 @@ const AnimatedBackground = memo(() => {
           height: "100%",
           top: 0,
           left: 0,
-          opacity: 0.15,
+          opacity: isMobile ? 0.1 : 0.15,
+          pointerEvents: "none",
         }}
         viewBox="0 0 1000 1000"
+        preserveAspectRatio="xMidYMid slice"
       >
         <defs>
           <linearGradient id="neuralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -126,13 +156,14 @@ const AnimatedBackground = memo(() => {
             key={`light-${light.id}`}
             style={{
               position: "absolute",
-              width: "150px",
-              height: "150px",
+              width: isMobile ? "100px" : "150px",
+              height: isMobile ? "100px" : "150px",
               borderRadius: "50%",
               background: `radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0) 70%)`,
-              filter: "blur(40px)",
+              filter: isMobile ? "blur(25px)" : "blur(40px)",
               top: `${light.top}%`,
               left: `${light.left}%`,
+              pointerEvents: "none",
             }}
             animate={{
               opacity: [0.3, 0.7, 0.3],
@@ -166,6 +197,7 @@ const AnimatedBackground = memo(() => {
               boxShadow: "0 0 10px rgba(16, 185, 129, 0.6)",
               top: `${particle.top}%`,
               left: `${particle.left}%`,
+              pointerEvents: "none",
             }}
             animate={{
               y: [-20, particle.yTarget],
@@ -193,13 +225,14 @@ const AnimatedBackground = memo(() => {
       height: "100%",
       background: "linear-gradient(135deg, #0a0e1a 0%, #111820 50%, #0f1419 100%)",
       zIndex: -1,
-      overflow: "hidden"
+      overflow: "hidden",
+      pointerEvents: "none",
     }}>
       {/* Neural Network */}
       <NeuralNetwork />
       
-      {/* Stadium Lights */}
-      <StadiumLights />
+      {/* Stadium Lights - Skip on very small screens */}
+      {!isMobile && <StadiumLights />}
       
       {/* Particles */}
       <Particles />
