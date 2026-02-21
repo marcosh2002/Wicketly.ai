@@ -15,25 +15,16 @@ COPY . .
 # Build the React app
 RUN npm run build
 
-# Production stage - serve with Express server
-FROM node:18-alpine
+# Use nginx to serve the built app
+FROM nginx:alpine
 
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm install --production
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built app from builder stage
-COPY --from=builder /app/build ./build
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy server.js
-COPY server.js ./
-
-# Expose port
 EXPOSE 3000
 
-# Start the Express server
-CMD ["node", "server.js"]
+# Use sh script to substitute PORT variable
+CMD ["sh", "-c", "sed -i 's/3000/'${PORT:-3000}'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
