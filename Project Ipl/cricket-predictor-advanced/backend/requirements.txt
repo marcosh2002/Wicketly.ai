@@ -11,3 +11,6 @@ pydantic
 python-multipart
 email-validator
 requests
+psycopg2-binary
+python-dotenv
+gunicorn
