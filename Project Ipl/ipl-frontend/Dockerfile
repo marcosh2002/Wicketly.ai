@@ -15,19 +15,17 @@ COPY . .
 # Build the React app
 RUN npm run build
 
-# Use nginx to serve the built app
-FROM nginx:alpine
+# Production stage - serve built app
+FROM node:18-alpine
 
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+WORKDIR /app
 
 # Copy built app from builder stage
-COPY --from=builder /app/build /usr/share/nginx/html
+COPY --from=builder /app/build ./build
+
+# Copy server.js
+COPY server.js ./
 
 EXPOSE 3000
 
-CMD ["/start.sh"]
+CMD ["node", "server.js"]
