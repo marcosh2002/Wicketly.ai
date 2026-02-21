@@ -108,7 +108,11 @@ def get_players():
             df = pd.read_csv(os.path.join(DATA_DIR, "players.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "players.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 @app.route("/matches")
 def get_matches():
@@ -119,7 +123,11 @@ def get_matches():
             df = pd.read_csv(os.path.join(DATA_DIR, "matches.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "matches.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 @app.route("/headtohead")
 def get_headtohead():
@@ -130,7 +138,11 @@ def get_headtohead():
             df = pd.read_csv(os.path.join(DATA_DIR, "headtohead.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "headtohead.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 @app.route("/news")
 def get_news():
@@ -141,7 +153,11 @@ def get_news():
             df = pd.read_csv(os.path.join(DATA_DIR, "news.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "news.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
