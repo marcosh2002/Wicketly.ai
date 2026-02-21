@@ -20,31 +20,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install Express for serving the SPA
-RUN npm install express
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm install --production
 
 # Copy built app from builder stage
 COPY --from=builder /app/build ./build
 
-# Create simple Express server
-RUN cat > server.js << 'EOF'
-const express = require('express');
-const path = require('path');
-const app = express();
-
-// Serve static files from the React build directory
-app.use(express.static(path.join(__dirname, 'build')));
-
-// Serve index.html for all other routes (SPA routing)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-});
-EOF
+# Copy server.js
+COPY server.js ./
 
 # Expose port
 EXPOSE 3000
