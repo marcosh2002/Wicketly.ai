@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import API_BASE from "../config";
 
 export default function TeamDetails() {
   const { teamName } = useParams();
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://127.0.0.1:8000/players?team=${teamName}`)
+    axios.get(`${API_BASE}/players?team=${teamName}`)
       .then(res => setPlayers(res.data.players || []))
       .catch(() => setPlayers([]));
   }, [teamName]);

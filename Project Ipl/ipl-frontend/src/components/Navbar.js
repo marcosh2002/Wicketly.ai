@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AccountCircle, Logout } from "@mui/icons-material";
 import { AuthContext } from "../context/AuthContext";
+import API_BASE from "../config";
 
 export default function Navbar({ onOpenLogin, onOpenSignup }) {
   const { user, logout, updateUserTokens } = useContext(AuthContext);
@@ -15,7 +16,7 @@ export default function Navbar({ onOpenLogin, onOpenSignup }) {
     if (user && user.username) {
       const fetchTokens = async () => {
         try {
-          const response = await fetch(`http://127.0.0.1:8000/users/${user.username}/balance`);
+          const response = await fetch(`${API_BASE}/users/${user.username}/balance`);
           const data = await response.json();
           if (data.ok && data.tokens !== undefined) {
             updateUserTokens(data.tokens);
@@ -135,7 +136,7 @@ export default function Navbar({ onOpenLogin, onOpenSignup }) {
                           if (!referralInfo && !loadingReferral) {
                             setLoadingReferral(true);
                             try {
-                              const res = await fetch(`http://127.0.0.1:8000/users/${encodeURIComponent(user.username)}/referral`);
+                              const res = await fetch(`${API_BASE}/users/${encodeURIComponent(user.username)}/referral`);
                               const d = await res.json();
                               if (res.ok) setReferralInfo(d);
                             } catch (e) {

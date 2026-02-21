@@ -11,6 +11,7 @@ import {
   Error as ErrorIcon,
   CardGiftcard
 } from "@mui/icons-material";
+import API_BASE from "../config";
 
 export default function AuthModal({
   isOpen,
@@ -178,7 +179,7 @@ export default function AuthModal({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-      const response = await fetch("http://127.0.0.1:8000/users/register", {
+      const response = await fetch(`${API_BASE}/users/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -258,7 +259,7 @@ export default function AuthModal({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      const response = await fetch('http://127.0.0.1:8000/users/login', {
+      const response = await fetch(`${API_BASE}/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -315,7 +316,7 @@ export default function AuthModal({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const response = await fetch('http://127.0.0.1:8000/users/forgot-password', {
+      const response = await fetch(`${API_BASE}/users/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
