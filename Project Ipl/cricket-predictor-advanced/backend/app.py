@@ -3,17 +3,13 @@ from flask_cors import CORS
 import pandas as pd
 import joblib
 import os
-from dotenv import load_dotenv
-from db import load_csv_to_db, engine, SessionLocal
-from sqlalchemy import text
-
-load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 # Paths
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 # Load model + encoder if exists
 if os.path.exists(MODEL_PATH):
@@ -24,11 +20,11 @@ else:
     model = None
     encoder = None
 
-# Initialize database on startup
-try:
-    load_csv_to_db()
-except Exception as e:
-    print(f"Database initialization error: {e}")
+# Load datasets
+matches = pd.read_csv(os.path.join(DATA_DIR, "matches.csv"))
+players = pd.read_csv(os.path.join(DATA_DIR, "players.csv"))
+headtohead = pd.read_csv(os.path.join(DATA_DIR, "headtohead.csv"))
+news = pd.read_csv(os.path.join(DATA_DIR, "news.csv"))
 
 @app.route("/")
 def home():
@@ -55,37 +51,19 @@ def predict():
 
 @app.route("/players")
 def get_players():
-    try:
-        df = pd.read_sql("SELECT * FROM players", engine)
-        return df.to_dict(orient="records")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return players.to_dict(orient="records")
 
 @app.route("/matches")
 def get_matches():
-    try:
-        df = pd.read_sql("SELECT * FROM matches", engine)
-        return df.to_dict(orient="records")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return matches.to_dict(orient="records")
 
 @app.route("/headtohead")
 def get_headtohead():
-    try:
-        df = pd.read_sql("SELECT * FROM headtohead", engine)
-        return df.to_dict(orient="records")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return headtohead.to_dict(orient="records")
 
 @app.route("/news")
 def get_news():
-    try:
-        df = pd.read_sql("SELECT * FROM news", engine)
-        return df.to_dict(orient="records")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return news.to_dict(orient="records")
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    debug = os.getenv("FLASK_ENV", "development") != "production"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    app.run(debug=True)

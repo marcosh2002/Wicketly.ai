@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Close } from "@mui/icons-material";
+import { 
+  Close, 
+  Person, 
+  Email, 
+  Lock, 
+  Visibility, 
+  VisibilityOff,
+  CheckCircle,
+  Error as ErrorIcon,
+  CardGiftcard
+} from "@mui/icons-material";
 
 export default function AuthModal({
   isOpen,
@@ -20,6 +30,17 @@ export default function AuthModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [fieldValidation, setFieldValidation] = useState({
+    fullName: null,
+    username: null,
+    email: null,
+    password: null,
+    confirmPassword: null,
+    referralCode: null
+  });
 
   // Autofill referral code from URL (e.g. ?ref=CODE)
   useEffect(() => {
@@ -34,7 +55,7 @@ export default function AuthModal({
     }
   }, []);
 
-  // Input change handler
+  // Input change handler with real-time validation
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -42,6 +63,52 @@ export default function AuthModal({
       [name]: value
     }));
     setError("");
+    
+    // Real-time validation
+    validateField(name, value);
+  };
+
+  // Real-time field validation
+  const validateField = (name, value) => {
+    let isValid = null;
+    
+    switch(name) {
+      case 'fullName':
+        isValid = value.trim().length >= 2;
+        break;
+      case 'username':
+        isValid = value.trim().length >= 3;
+        break;
+      case 'email':
+        isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        break;
+      case 'password':
+        isValid = value.length >= 6;
+        if (formData.confirmPassword && mode === 'signup') {
+          setFieldValidation(prev => ({
+            ...prev,
+            confirmPassword: value === formData.confirmPassword
+          }));
+        }
+        break;
+      case 'confirmPassword':
+        isValid = value === formData.password;
+        break;
+      case 'referralCode':
+        if (value.trim() === '') {
+          isValid = null; // optional field
+        } else {
+          isValid = /^[A-Za-z0-9-_]{3,20}$/.test(value);
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setFieldValidation(prev => ({
+      ...prev,
+      [name]: isValid
+    }));
   };
 
   // Form validation
@@ -229,6 +296,58 @@ export default function AuthModal({
     }
   };
 
+  // Handle forgot password
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.email.trim()) {
+      setError("Please enter your email address");
+      return;
+    }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch('http://127.0.0.1:8000/users/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email: formData.email.trim() }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSuccess(`Password reset instructions have been sent to ${formData.email}`);
+        setTimeout(() => {
+          setShowForgotPassword(false);
+          resetForm();
+        }, 3000);
+      } else {
+        setError(data.error || 'Failed to send reset email');
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        setError("Request timeout. Please try again.");
+      } else {
+        setError("Network error. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       fullName: "",
@@ -240,6 +359,17 @@ export default function AuthModal({
     });
     setError("");
     setSuccess("");
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setShowForgotPassword(false);
+    setFieldValidation({
+      fullName: null,
+      username: null,
+      email: null,
+      password: null,
+      confirmPassword: null,
+      referralCode: null
+    });
   };
 
   return (
@@ -256,7 +386,9 @@ export default function AuthModal({
             left: 0,
             right: 0,
             bottom: 0,
-            background: "rgba(0, 0, 0, 0.6)",
+            background: "rgba(0, 0, 0, 0.7)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -269,13 +401,18 @@ export default function AuthModal({
             exit={{ scale: 0.8, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "white",
-              borderRadius: "12px",
+              background: "rgba(255, 255, 255, 0.98)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              borderRadius: "20px",
               padding: "40px",
               maxWidth: "500px",
               width: "90%",
-              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-              position: "relative"
+              boxShadow: "0 25px 80px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.8)",
+              border: "2px solid rgba(255, 255, 255, 0.6)",
+              outline: "1px solid rgba(30, 42, 120, 0.1)",
+              position: "relative",
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
             }}
           >
             {/* Close Button */}
@@ -285,11 +422,28 @@ export default function AuthModal({
                 position: "absolute",
                 top: "15px",
                 right: "15px",
-                background: "none",
-                border: "none",
+                background: "rgba(0, 0, 0, 0.05)",
+                border: "1px solid rgba(0, 0, 0, 0.1)",
+                borderRadius: "8px",
                 cursor: "pointer",
                 fontSize: "24px",
-                color: "#999"
+                color: "#666",
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(255, 0, 0, 0.1)";
+                e.currentTarget.style.color = "#c62828";
+                e.currentTarget.style.transform = "scale(1.1) rotate(90deg)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(0, 0, 0, 0.05)";
+                e.currentTarget.style.color = "#666";
+                e.currentTarget.style.transform = "scale(1) rotate(0deg)";
               }}
             >
               <Close />
@@ -299,17 +453,21 @@ export default function AuthModal({
             <h2 style={{
               marginTop: 0,
               marginBottom: "30px",
-              color: "#1e2a78",
+              background: "linear-gradient(135deg, #1e2a78, #00c6ff)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
               textAlign: "center",
               fontSize: "28px",
-              fontWeight: 700
+              fontWeight: 700,
+              letterSpacing: "-0.5px"
             }}>
-              {mode === "login" ? "Login" : "Create Account"}
+              {showForgotPassword ? "Reset Password" : mode === "login" ? "Welcome Back" : "Create Account"}
             </h2>
 
             {/* Form */}
-            <form onSubmit={mode === "login" ? handleLogin : handleSignup}>
-              {mode === "signup" && (
+            <form onSubmit={showForgotPassword ? handleForgotPassword : mode === "login" ? handleLogin : handleSignup}>
+              {mode === "signup" && !showForgotPassword && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -317,69 +475,167 @@ export default function AuthModal({
                 >
                   <label style={{
                     display: "block",
-                    marginBottom: "5px",
+                    marginBottom: "8px",
                     color: "#333",
                     fontWeight: 600,
                     fontSize: "14px"
                   }}>Full Name</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    placeholder="John Doe"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      marginBottom: "15px",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                      transition: "border 0.3s"
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = "#00c6ff"}
-                    onBlur={(e) => e.target.style.borderColor = "#ddd"}
-                  />
+                  <div style={{ position: "relative", marginBottom: "15px" }}>
+                    <Person style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: fieldValidation.fullName === false ? "#c62828" : fieldValidation.fullName ? "#2e7d32" : "#999",
+                      fontSize: "20px",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                    }} />
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      placeholder="John Doe"
+                      style={{
+                        width: "100%",
+                        padding: "12px 45px 12px 45px",
+                        border: `2px solid ${fieldValidation.fullName === false ? "#c62828" : fieldValidation.fullName ? "#2e7d32" : "#e0e0e0"}`,
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.fullName === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.fullName ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
+                      }}
+                      onFocus={(e) => {
+                        if (fieldValidation.fullName === null) {
+                          e.target.style.borderColor = "#00c6ff";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (fieldValidation.fullName === null) {
+                          e.target.style.borderColor = "#e0e0e0";
+                          e.target.style.boxShadow = "none";
+                        }
+                      }}
+                    />
+                    {fieldValidation.fullName !== null && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
+                        {fieldValidation.fullName ? 
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
+                        }
+                      </motion.div>
+                    )}
+                  </div>
                 </motion.div>
               )}
 
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: mode === "signup" ? 0.2 : 0.1 }}
-              >
-                <label style={{
-                  display: "block",
-                  marginBottom: "5px",
-                  color: "#333",
-                  fontWeight: 600,
-                  fontSize: "14px"
-                }}>Username</label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="johndoe123"
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    marginBottom: "15px",
-                    border: "2px solid #ddd",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontFamily: "inherit",
-                    boxSizing: "border-box",
-                    transition: "border 0.3s"
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = "#00c6ff"}
-                  onBlur={(e) => e.target.style.borderColor = "#ddd"}
-                />
-              </motion.div>
+              {!showForgotPassword && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: mode === "signup" ? 0.2 : 0.1 }}
+                >
+                  <label style={{
+                    display: "block",
+                    marginBottom: "8px",
+                    color: "#333",
+                    fontWeight: 600,
+                    fontSize: "14px"
+                  }}>Username</label>
+                  <div style={{ position: "relative", marginBottom: "15px" }}>
+                    <Person style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: fieldValidation.username === false ? "#c62828" : fieldValidation.username ? "#2e7d32" : "#999",
+                      fontSize: "20px",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                    }} />
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      placeholder="johndoe123"
+                      style={{
+                        width: "100%",
+                        padding: "12px 45px 12px 45px",
+                        border: `2px solid ${fieldValidation.username === false ? "#c62828" : fieldValidation.username ? "#2e7d32" : "#e0e0e0"}`,
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.username === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.username ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
+                      }}
+                      onFocus={(e) => {
+                        if (fieldValidation.username === null) {
+                          e.target.style.borderColor = "#00c6ff";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (fieldValidation.username === null) {
+                          e.target.style.borderColor = "#e0e0e0";
+                          e.target.style.boxShadow = "none";
+                        }
+                      }}
+                    />
+                    {fieldValidation.username !== null && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
+                        {fieldValidation.username ? 
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
+                        }
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
-              {mode === "signup" && (
+              {(mode === "signup" || showForgotPassword) && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -387,69 +643,166 @@ export default function AuthModal({
                 >
                   <label style={{
                     display: "block",
-                    marginBottom: "5px",
+                    marginBottom: "8px",
                     color: "#333",
                     fontWeight: 600,
                     fontSize: "14px"
                   }}>Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="john@example.com"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      marginBottom: "15px",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                      transition: "border 0.3s"
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = "#00c6ff"}
-                    onBlur={(e) => e.target.style.borderColor = "#ddd"}
-                  />
+                  <div style={{ position: "relative", marginBottom: "15px" }}>
+                    <Email style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: fieldValidation.email === false ? "#c62828" : fieldValidation.email ? "#2e7d32" : "#999",
+                      fontSize: "20px",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                    }} />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="john@example.com"
+                      style={{
+                        width: "100%",
+                        padding: "12px 45px 12px 45px",
+                        border: `2px solid ${fieldValidation.email === false ? "#c62828" : fieldValidation.email ? "#2e7d32" : "#e0e0e0"}`,
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.email === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.email ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
+                      }}
+                      onFocus={(e) => {
+                        if (fieldValidation.email === null) {
+                          e.target.style.borderColor = "#00c6ff";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (fieldValidation.email === null) {
+                          e.target.style.borderColor = "#e0e0e0";
+                          e.target.style.boxShadow = "none";
+                        }
+                      }}
+                    />
+                    {fieldValidation.email !== null && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
+                        {fieldValidation.email ? 
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
+                        }
+                      </motion.div>
+                    )}
+                  </div>
                 </motion.div>
               )}
 
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: mode === "signup" ? 0.4 : 0.2 }}
-              >
-                <label style={{
-                  display: "block",
-                  marginBottom: "5px",
-                  color: "#333",
-                  fontWeight: 600,
-                  fontSize: "14px"
-                }}>Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder={mode === "login" ? "Enter password" : "Min 6 characters"}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    marginBottom: "15px",
-                    border: "2px solid #ddd",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontFamily: "inherit",
-                    boxSizing: "border-box",
-                    transition: "border 0.3s"
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = "#00c6ff"}
-                  onBlur={(e) => e.target.style.borderColor = "#ddd"}
-                />
-              </motion.div>
+              {!showForgotPassword && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: mode === "signup" ? 0.4 : 0.2 }}
+                >
+                  <label style={{
+                    display: "block",
+                    marginBottom: "8px",
+                    color: "#333",
+                    fontWeight: 600,
+                    fontSize: "14px"
+                  }}>Password</label>
+                  <div style={{ position: "relative", marginBottom: "15px" }}>
+                    <Lock style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: fieldValidation.password === false ? "#c62828" : fieldValidation.password ? "#2e7d32" : "#999",
+                      fontSize: "20px",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                    }} />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder={mode === "login" ? "Enter password" : "Min 6 characters"}
+                      style={{
+                        width: "100%",
+                        padding: "12px 45px 12px 45px",
+                        border: `2px solid ${fieldValidation.password === false ? "#c62828" : fieldValidation.password ? "#2e7d32" : "#e0e0e0"}`,
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.password === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.password ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
+                      }}
+                      onFocus={(e) => {
+                        if (fieldValidation.password === null) {
+                          e.target.style.borderColor = "#00c6ff";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (fieldValidation.password === null) {
+                          e.target.style.borderColor = "#e0e0e0";
+                          e.target.style.boxShadow = "none";
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "14px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        color: "#999",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = "#00c6ff"}
+                      onMouseLeave={(e) => e.currentTarget.style.color = "#999"}
+                    >
+                      {showPassword ? 
+                        <VisibilityOff style={{ fontSize: "20px" }} /> : 
+                        <Visibility style={{ fontSize: "20px" }} />
+                      }
+                    </button>
+                  </div>
+                </motion.div>
+              )}
 
-              {mode === "signup" && (
+              {mode === "signup" && !showForgotPassword && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -457,35 +810,82 @@ export default function AuthModal({
                 >
                   <label style={{
                     display: "block",
-                    marginBottom: "5px",
+                    marginBottom: "8px",
                     color: "#333",
                     fontWeight: 600,
                     fontSize: "14px"
                   }}>Confirm Password</label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Re-enter password"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      marginBottom: "15px",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                      transition: "border 0.3s"
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = "#00c6ff"}
-                    onBlur={(e) => e.target.style.borderColor = "#ddd"}
-                  />
+                  <div style={{ position: "relative", marginBottom: "15px" }}>
+                    <Lock style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: fieldValidation.confirmPassword === false ? "#c62828" : fieldValidation.confirmPassword ? "#2e7d32" : "#999",
+                      fontSize: "20px",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                    }} />
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Re-enter password"
+                      style={{
+                        width: "100%",
+                        padding: "12px 45px 12px 45px",
+                        border: `2px solid ${fieldValidation.confirmPassword === false ? "#c62828" : fieldValidation.confirmPassword ? "#2e7d32" : "#e0e0e0"}`,
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.confirmPassword === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.confirmPassword ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
+                      }}
+                      onFocus={(e) => {
+                        if (fieldValidation.confirmPassword === null) {
+                          e.target.style.borderColor = "#00c6ff";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (fieldValidation.confirmPassword === null) {
+                          e.target.style.borderColor = "#e0e0e0";
+                          e.target.style.boxShadow = "none";
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "14px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        color: "#999",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = "#00c6ff"}
+                      onMouseLeave={(e) => e.currentTarget.style.color = "#999"}
+                    >
+                      {showConfirmPassword ? 
+                        <VisibilityOff style={{ fontSize: "20px" }} /> : 
+                        <Visibility style={{ fontSize: "20px" }} />
+                      }
+                    </button>
+                  </div>
                 </motion.div>
               )}
 
-              {mode === "signup" && (
+              {mode === "signup" && !showForgotPassword && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -493,69 +893,194 @@ export default function AuthModal({
                 >
                   <label style={{
                     display: "block",
-                    marginBottom: "5px",
+                    marginBottom: "8px",
                     color: "#333",
                     fontWeight: 600,
                     fontSize: "14px"
-                  }}>Referral Code (optional)</label>
-                  <input
-                    type="text"
-                    name="referralCode"
-                    value={formData.referralCode}
-                    onChange={handleChange}
-                    placeholder="e.g. FRIEND-123"
+                  }}>Referral Code <span style={{ color: "#999", fontWeight: 400 }}>(optional)</span></label>
+                  <div style={{ position: "relative", marginBottom: "15px" }}>
+                    <CardGiftcard style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: fieldValidation.referralCode === false ? "#c62828" : fieldValidation.referralCode ? "#2e7d32" : "#999",
+                      fontSize: "20px",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                    }} />
+                    <input
+                      type="text"
+                      name="referralCode"
+                      value={formData.referralCode}
+                      onChange={handleChange}
+                      placeholder="e.g. FRIEND-123"
+                      style={{
+                        width: "100%",
+                        padding: "12px 45px 12px 45px",
+                        border: `2px solid ${fieldValidation.referralCode === false ? "#c62828" : fieldValidation.referralCode ? "#2e7d32" : "#e0e0e0"}`,
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        outline: "none",
+                        boxShadow: fieldValidation.referralCode === false ? "0 0 0 3px rgba(198, 40, 40, 0.1)" : fieldValidation.referralCode ? "0 0 0 3px rgba(46, 125, 50, 0.1)" : "none"
+                      }}
+                      onFocus={(e) => {
+                        if (fieldValidation.referralCode === null) {
+                          e.target.style.borderColor = "#00c6ff";
+                          e.target.style.boxShadow = "0 0 0 4px rgba(0, 198, 255, 0.15), 0 4px 12px rgba(0, 198, 255, 0.2)";
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (fieldValidation.referralCode === null) {
+                          e.target.style.borderColor = "#e0e0e0";
+                          e.target.style.boxShadow = "none";
+                        }
+                      }}
+                    />
+                    {fieldValidation.referralCode !== null && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)"
+                        }}
+                      >
+                        {fieldValidation.referralCode ? 
+                          <CheckCircle style={{ 
+                            color: "#2e7d32", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))"
+                          }} /> :
+                          <ErrorIcon style={{ 
+                            color: "#c62828", 
+                            fontSize: "22px",
+                            filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))"
+                          }} />
+                        }
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Forgot Password Link */}
+              {mode === "login" && !showForgotPassword && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  style={{
+                    textAlign: "right",
+                    marginBottom: "15px"
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
                     style={{
-                      width: "100%",
-                      padding: "12px",
-                      marginBottom: "15px",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                      transition: "border 0.3s"
+                      background: "none",
+                      border: "none",
+                      color: "#00c6ff",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                     }}
-                    onFocus={(e) => e.target.style.borderColor = "#00c6ff"}
-                    onBlur={(e) => e.target.style.borderColor = "#ddd"}
-                  />
+                    onMouseEnter={(e) => e.target.style.color = "#1e2a78"}
+                    onMouseLeave={(e) => e.target.style.color = "#00c6ff"}
+                  >
+                    Forgot Password?
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Back to Login Link */}
+              {showForgotPassword && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  style={{
+                    textAlign: "center",
+                    marginBottom: "15px"
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setError("");
+                      setSuccess("");
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#00c6ff",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                    }}
+                    onMouseEnter={(e) => e.target.style.color = "#1e2a78"}
+                    onMouseLeave={(e) => e.target.style.color = "#00c6ff"}
+                  >
+                    ← Back to Login
+                  </button>
                 </motion.div>
               )}
 
               {/* Error Message */}
               {error && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   style={{
-                    background: "#ffebee",
+                    background: "linear-gradient(135deg, #ffebee, #ffcdd2)",
                     color: "#c62828",
-                    padding: "12px",
-                    borderRadius: "8px",
+                    padding: "14px 16px",
+                    borderRadius: "10px",
                     marginBottom: "15px",
                     fontSize: "14px",
-                    fontWeight: 500
+                    fontWeight: 500,
+                    border: "1px solid #ef9a9a",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px"
                   }}
                 >
-                  {error}
+                  <ErrorIcon style={{ fontSize: "22px", filter: "drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3))" }} />
+                  <span>{error}</span>
                 </motion.div>
               )}
 
               {/* Success Message */}
               {success && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   style={{
-                    background: "#e8f5e9",
+                    background: "linear-gradient(135deg, #e8f5e9, #c8e6c9)",
                     color: "#2e7d32",
-                    padding: "12px",
-                    borderRadius: "8px",
+                    padding: "14px 16px",
+                    borderRadius: "10px",
                     marginBottom: "15px",
                     fontSize: "14px",
-                    fontWeight: 500
+                    fontWeight: 500,
+                    border: "1px solid #a5d6a7",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    whiteSpace: "pre-line"
                   }}
                 >
-                  ✓ {success}
+                  <CheckCircle style={{ fontSize: "22px", filter: "drop-shadow(0 2px 4px rgba(46, 125, 50, 0.3))" }} />
+                  <span>{success}</span>
                 </motion.div>
               )}
 
@@ -565,23 +1090,41 @@ export default function AuthModal({
                 disabled={loading}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: loading ? 1 : 1.02, boxShadow: loading ? "none" : "0 8px 20px rgba(0, 198, 255, 0.3)" }}
+                whileTap={{ scale: loading ? 1 : 0.98 }}
                 style={{
                   width: "100%",
-                  padding: "14px",
-                  background: loading ? "#ccc" : "linear-gradient(45deg, #1e2a78, #00c6ff)",
-                  color: "white",
+                  padding: "15px",
+                  background: loading ? "#e0e0e0" : "linear-gradient(135deg, #1e2a78, #00c6ff)",
+                  color: loading ? "#999" : "white",
                   border: "none",
-                  borderRadius: "8px",
+                  borderRadius: "12px",
                   fontSize: "16px",
                   fontWeight: 700,
                   cursor: loading ? "not-allowed" : "pointer",
-                  transition: "all 0.3s",
-                  marginBottom: "15px"
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  marginBottom: "15px",
+                  boxShadow: loading ? "none" : "0 4px 12px rgba(0, 198, 255, 0.2)",
+                  position: "relative",
+                  overflow: "hidden"
                 }}
               >
-                {loading ? "Processing..." : mode === "login" ? "Sign In" : "Create Account"}
+                {loading && (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    style={{
+                      display: "inline-block",
+                      marginRight: "8px",
+                      width: "16px",
+                      height: "16px",
+                      border: "2px solid #999",
+                      borderTopColor: "transparent",
+                      borderRadius: "50%"
+                    }}
+                  />
+                )}
+                {loading ? "Processing..." : showForgotPassword ? "Send Reset Link" : mode === "login" ? "Sign In" : "Create Account"}
               </motion.button>
             </form>
           </motion.div>
