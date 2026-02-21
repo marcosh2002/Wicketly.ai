@@ -1,0 +1,29 @@
+# Build stage for frontend
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /app
+
+# Copy entire Project Ipl directory
+COPY "Project Ipl" ./workspace
+
+# Install dependencies  
+WORKDIR /app/workspace/ipl-frontend
+RUN npm install
+
+# Build React app
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy built frontend from builder
+COPY --from=frontend-builder /app/workspace/ipl-frontend/build ./build
+
+# Copy server.js
+COPY --from=frontend-builder /app/workspace/ipl-frontend/server.js ./
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
