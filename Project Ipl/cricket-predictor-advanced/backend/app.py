@@ -4,8 +4,9 @@ import pandas as pd
 import joblib
 import os
 from dotenv import load_dotenv
-from db import load_csv_to_db, engine, SessionLocal
-from sqlalchemy import text
+from sqlalchemy import create_engine
+import warnings
+warnings.filterwarnings('ignore')
 
 load_dotenv()
 
@@ -14,21 +15,66 @@ CORS(app)
 
 # Paths
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
-# Load model + encoder if exists
+# Database setup
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///cricket_local.db")
+
+# For local development with SQLite, for Railway with PostgreSQL
+if "postgresql" in DATABASE_URL:
+    # PostgreSQL connection
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=3600)
+    
+    def init_db():
+        """Initialize database tables from CSV"""
+        try:
+            # Check if tables exist
+            conn = engine.raw_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                    AND table_name = 'matches'
+                );
+            """)
+            
+            if not cursor.fetchone()[0]:
+                print("Initializing PostgreSQL database...")
+                # Load CSV files to PostgreSQL
+                for csv_file in os.listdir(DATA_DIR):
+                    if csv_file.endswith('.csv'):
+                        try:
+                            table_name = csv_file.replace('.csv', '')
+                            df = pd.read_csv(os.path.join(DATA_DIR, csv_file))
+                            df.to_sql(table_name, engine, if_exists='replace', index=False)
+                            print(f"  ✓ Loaded {table_name}")
+                        except Exception as e:
+                            print(f"  ✗ Error loading {csv_file}: {e}")
+                
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print(f"Database init error: {e}")
+else:
+    # SQLite for local development
+    engine = create_engine(DATABASE_URL)
+
+# Load model + encoder
 if os.path.exists(MODEL_PATH):
-    obj = joblib.load(MODEL_PATH)
-    model = obj.get("model", None)
-    encoder = obj.get("encoder", None)
+    try:
+        obj = joblib.load(MODEL_PATH)
+        model = obj.get("model", None)
+        encoder = obj.get("encoder", None)
+    except:
+        model = None
+        encoder = None
 else:
     model = None
     encoder = None
 
 # Initialize database on startup
-try:
-    load_csv_to_db()
-except Exception as e:
-    print(f"Database initialization error: {e}")
+init_db() if "postgresql" in DATABASE_URL else None
 
 @app.route("/")
 def home():
@@ -56,34 +102,62 @@ def predict():
 @app.route("/players")
 def get_players():
     try:
-        df = pd.read_sql("SELECT * FROM players", engine)
+        if "postgresql" in DATABASE_URL:
+            df = pd.read_sql("SELECT * FROM players LIMIT 1000", engine)
+        else:
+            df = pd.read_csv(os.path.join(DATA_DIR, "players.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "players.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 @app.route("/matches")
 def get_matches():
     try:
-        df = pd.read_sql("SELECT * FROM matches", engine)
+        if "postgresql" in DATABASE_URL:
+            df = pd.read_sql("SELECT * FROM matches LIMIT 1000", engine)
+        else:
+            df = pd.read_csv(os.path.join(DATA_DIR, "matches.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "matches.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 @app.route("/headtohead")
 def get_headtohead():
     try:
-        df = pd.read_sql("SELECT * FROM headtohead", engine)
+        if "postgresql" in DATABASE_URL:
+            df = pd.read_sql("SELECT * FROM headtohead LIMIT 1000", engine)
+        else:
+            df = pd.read_csv(os.path.join(DATA_DIR, "headtohead.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "headtohead.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 @app.route("/news")
 def get_news():
     try:
-        df = pd.read_sql("SELECT * FROM news", engine)
+        if "postgresql" in DATABASE_URL:
+            df = pd.read_sql("SELECT * FROM news LIMIT 1000", engine)
+        else:
+            df = pd.read_csv(os.path.join(DATA_DIR, "news.csv"))
         return df.to_dict(orient="records")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "news.csv"))
+            return df.to_dict(orient="records")
+        except Exception as csv_error:
+            return jsonify({"error": f"DB error: {str(e)} | CSV fallback error: {str(csv_error)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))

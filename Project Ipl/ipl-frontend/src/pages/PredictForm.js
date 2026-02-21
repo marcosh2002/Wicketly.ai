@@ -47,6 +47,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
+import API_BASE from "../config";
 
 const teams = ["CSK", "MI", "RCB", "KKR", "PBKS", "RR", "GT", "LSG", "DC", "SRH"];
 
@@ -456,7 +457,7 @@ export default function PredictForm() {
       };
 
       console.log("Sending prediction request:", payload);
-      const response = await axios.post("http://127.0.0.1:8000/predict/match", payload);
+      const response = await axios.post(`${API_BASE}/predict/match`, payload);
       console.log("Prediction response received:", response.data);
       
       // backend returns either prediction object or an error structure
@@ -482,7 +483,7 @@ export default function PredictForm() {
         data: err.response?.data,
         message: err.message
       });
-      setError(err.response?.data?.error || "Error predicting match. Make sure backend is running on http://127.0.0.1:8000");
+      setError(err.response?.data?.error || "Error predicting match. Make sure backend is running on the configured API URL");
       setMatchPrediction(null);
     }
     setLoading(false);
@@ -510,7 +511,7 @@ export default function PredictForm() {
       };
       
       console.log("Sending wickets prediction request:", payload);
-      const response = await axios.post("http://127.0.0.1:8000/predict/wickets", payload);
+      const response = await axios.post(`${API_BASE}/predict/wickets`, payload);
       console.log("Wickets prediction response:", response.data);
       
       if (response.data && response.data.error) {

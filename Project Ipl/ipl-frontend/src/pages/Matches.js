@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
+import API_BASE from "../config";
 
 export default function Matches() {
   const { user, openSignup, openLogin } = useContext(AuthContext);
@@ -23,7 +24,7 @@ export default function Matches() {
       return;
     }
 
-    axios.get("http://127.0.0.1:8000/matches")
+    axios.get(`${API_BASE}/matches`)
       .then(res => {
         const data = res.data.matches || res.data || [];
         const matchesArray = Array.isArray(data) ? data : [];

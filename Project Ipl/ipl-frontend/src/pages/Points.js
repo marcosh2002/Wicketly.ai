@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import API_BASE from '../config';
 
 export default function Points() {
   const { user } = useContext(AuthContext);
@@ -9,7 +10,7 @@ export default function Points() {
   useEffect(() => {
     if (user && user.username) {
       setLoading(true);
-      const apiUrl = `http://127.0.0.1:8000/users/${encodeURIComponent(user.username)}/balance`;
+      const apiUrl = `${API_BASE}/users/${encodeURIComponent(user.username)}/balance`;
       fetch(apiUrl)
         .then((res) => res.json())
         .then((data) => {
