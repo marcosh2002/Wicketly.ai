@@ -26,12 +26,8 @@ RUN npm install -g serve
 # Copy built app from builder stage
 COPY --from=builder /app/build ./build
 
-# Expose port
+# Expose port (Railway will assign PORT via environment variable)
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
-# Start server
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Start server - listen on PORT env var (set by Railway) or default to 3000
+CMD ["sh", "-c", "serve -s build -l ${PORT:-3000}"]
