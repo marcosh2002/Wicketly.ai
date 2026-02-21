@@ -21,10 +21,13 @@ FROM nginx:alpine
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copy startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Copy built app from builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
 
 EXPOSE 3000
 
-# Use sh script to substitute PORT variable
-CMD ["sh", "-c", "sed -i 's/3000/'${PORT:-3000}'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+CMD ["/start.sh"]
