@@ -1,5 +1,5 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Build stage for frontend
+FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app
 
@@ -9,19 +9,20 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
-COPY . .
+# Copy source
+COPY src ./src
+COPY public ./public
 
-# Build the React app
+# Build React app
 RUN npm run build
 
-# Production stage - serve built app
+# Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy built app from builder stage
-COPY --from=builder /app/build ./build
+# Copy built frontend from builder
+COPY --from=frontend-builder /app/build ./build
 
 # Copy server.js
 COPY server.js ./
