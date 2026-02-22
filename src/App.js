@@ -410,12 +410,11 @@ function WelcomePage({ onFinish }) {
             }}
           >
             <AnimatedWord word="Welcome" delay={0} />
-            <AnimatedWord word="To" delay={0.15} />
-            <AnimatedWord word="Cricket" delay={0.3} isKeyword />
+            <AnimatedWord word="to" delay={0.15} />
+            <AnimatedWord word="Wicketly" delay={0.3} isKeyword />
             <br />
-            <AnimatedWord word="Match" delay={0.45} />
-            <AnimatedWord word="Prediction" delay={0.6} isKeyword />
-            <AnimatedWord word="World" delay={0.75} />
+            <AnimatedWord word="IPL" delay={0.45} isKeyword />
+            <AnimatedWord word="Portal!" delay={0.6} />
           </motion.h1>
 
           {/* Subheading */}
@@ -431,7 +430,7 @@ function WelcomePage({ onFinish }) {
               letterSpacing: "1px",
             }}
           >
-            Your Ultimate Cricket Experience
+            Your Ultimate IPL Experience
           </motion.h2>
 
           {/* Supporting Line */}

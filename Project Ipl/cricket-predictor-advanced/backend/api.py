@@ -20,7 +20,8 @@ import pvp_utils
 from sklearn.exceptions import InconsistentVersionWarning
 from unified_db import (
     init_db, get_db, User, create_user, get_user_by_username,
-    authenticate_user, deduct_tokens, add_tokens, hash_password, verify_password
+    authenticate_user, deduct_tokens, add_tokens, hash_password, verify_password,
+    get_or_create_spin_stat
 )
 
 # Team name mapping for user-friendly input
@@ -1040,15 +1041,16 @@ def spin_wheel(username: str, db = Depends(get_db)):
     user = get_user_by_username(db, username)
     if not user:
         return {"ok": False, "error": "user not found"}
-    
-    # Check and track daily spins
-    # For simplicity, we'll use a basic spin counter that resets daily
-    # In production, you'd want a dedicated spin_history table
+
     today = datetime.utcnow().date().isoformat()
-    
-    # Get spin count from user's metadata (we'll store in a simple way)
-    # Since we don't have a dedicated field, we'll track spins differently
-    # For now, let's assume max 2 spins per day (can be enhanced later)
+    stats = get_or_create_spin_stat(db, username)
+    if stats.spins_used >= 2:
+        return {
+            "ok": False,
+            "error": "spin limit reached",
+            "spins_left": 0,
+            "date": today
+        }
     
     # Random reward: 5, 15, 50, or 100 tokens
     rewards = [5, 15, 50, 100]
@@ -1056,14 +1058,21 @@ def spin_wheel(username: str, db = Depends(get_db)):
     
     # Add tokens to user
     user.tokens += reward
+    stats.spins_used += 1
+    stats.last_spin_date = today
     db.commit()
     db.refresh(user)
+    db.refresh(stats)
+
+    spins_left = max(0, 2 - stats.spins_used)
     
     return {
         "ok": True,
         "reward": reward,
         "tokens_remaining": user.tokens,
-        "spins_left": 1  # Simplified: always return 1 spin left
+        "new_balance": user.tokens,
+        "spins_left": spins_left,
+        "date": today
     }
 
 @app.get("/users/{username}/spin_status")
@@ -1072,12 +1081,14 @@ def get_spin_status(username: str, db = Depends(get_db)):
     user = get_user_by_username(db, username)
     if not user:
         return {"ok": False, "error": "user not found"}
-    
+
+    stats = get_or_create_spin_stat(db, username)
     today = datetime.utcnow().date().isoformat()
-    
+    spins_left = max(0, 2 - stats.spins_used)
+
     return {
         "ok": True,
-        "spins_left": 2,  # Simplified: always return 2 spins available
+        "spins_left": spins_left,
         "last_reward": None,
         "date": today
     }

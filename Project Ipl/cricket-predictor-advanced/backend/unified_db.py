@@ -58,6 +58,15 @@ class User(Base):
         }
 
 
+class SpinStat(Base):
+    """Per-user spin tracking (daily reset)."""
+    __tablename__ = "spin_stats"
+
+    username = Column(String, primary_key=True)
+    spins_used = Column(Integer, default=0)
+    last_spin_date = Column(String, nullable=True)
+
+
 # Create tables
 def init_db():
     """Initialize database"""
@@ -121,6 +130,26 @@ def create_user(db: Session, username: str, display_name: str, password: str, em
 def get_user_by_username(db: Session, username: str) -> User:
     """Get user by username"""
     return db.query(User).filter(User.username == username).first()
+
+
+def get_or_create_spin_stat(db: Session, username: str) -> SpinStat:
+    """Fetch spin stats for user, resetting daily usage when needed."""
+    stat = db.query(SpinStat).filter(SpinStat.username == username).first()
+    today = datetime.utcnow().date().isoformat()
+    if not stat:
+        stat = SpinStat(username=username, spins_used=0, last_spin_date=today)
+        db.add(stat)
+        db.commit()
+        db.refresh(stat)
+        return stat
+
+    if stat.last_spin_date != today:
+        stat.spins_used = 0
+        stat.last_spin_date = today
+        db.commit()
+        db.refresh(stat)
+
+    return stat
 
 
 def authenticate_user(db: Session, username: str, password: str) -> User:

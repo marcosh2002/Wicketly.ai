@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Close } from "@mui/icons-material";
 
+const API_BASE = (process.env.REACT_APP_API_BASE || "http://127.0.0.1:8000").replace(/\/$/, "");
+const apiUrl = (path) => `${API_BASE}${path}`;
+
 export default function AuthModal({
   isOpen,
   mode = "login", // "login" or "signup"
@@ -111,7 +114,7 @@ export default function AuthModal({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-      const response = await fetch("http://127.0.0.1:8000/users/register", {
+      const response = await fetch(apiUrl("/users/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -168,7 +171,12 @@ export default function AuthModal({
         setError("Request timeout - server is not responding. Please check your internet connection and try again.");
       } else {
         console.error("Signup error:", err);
-        setError("Network error: " + (err.message || "Could not connect to server"));
+        const maybeFetchError = (err.message || "").toLowerCase().includes("failed to fetch");
+        setError(
+          maybeFetchError
+            ? `Cannot connect to API at ${API_BASE}. Please start backend server.`
+            : "Network error: " + (err.message || "Could not connect to server")
+        );
       }
     } finally {
       setLoading(false);
@@ -191,7 +199,7 @@ export default function AuthModal({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      const response = await fetch('http://127.0.0.1:8000/users/login', {
+      const response = await fetch(apiUrl('/users/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +230,12 @@ export default function AuthModal({
         setError("Request timeout - server is not responding. Please try again.");
       } else {
         console.error("Login error:", err);
-        setError(err.message || "Network error. Please try again.");
+        const maybeFetchError = (err.message || "").toLowerCase().includes("failed to fetch");
+        setError(
+          maybeFetchError
+            ? `Cannot connect to API at ${API_BASE}. Please start backend server.`
+            : (err.message || "Network error. Please try again.")
+        );
       }
     } finally {
       setLoading(false);
