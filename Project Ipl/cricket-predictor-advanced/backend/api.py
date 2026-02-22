@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import joblib
+import pickle
 import pandas as pd
 import numpy as np
 import os
@@ -22,6 +23,8 @@ from unified_db import (
     init_db, get_db, User, create_user, get_user_by_username,
     authenticate_user, deduct_tokens, add_tokens, hash_password, verify_password
 )
+# Supabase integration for cloud authentication
+import supabase_client
 
 # Team name mapping for user-friendly input
 TEAM_NAME_MAP = {
@@ -259,7 +262,8 @@ try:
     if os.path.exists(LIVE_MODEL_PATH):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            live_bundle = joblib.load(LIVE_MODEL_PATH)
+            with open(LIVE_MODEL_PATH, "rb") as f:
+                live_bundle = pickle.load(f)
             live_predictor_model = live_bundle["model"]
             live_predictor_features = live_bundle["feature_cols"]
         print("✓ Live Predictor loaded successfully (96%+ accuracy)")
@@ -527,11 +531,11 @@ def predict_live_endpoint(request: LivePredictionRequest):
         
         # Get prediction probabilities
         win_proba = live_predictor_model.predict_proba(features)[0]
-        prediction = live_predictor_model.predict(features)[0]
+        prediction = int(live_predictor_model.predict(features)[0])
         
-        # Determine result
-        chaser_win_prob = win_proba[1] * 100
-        chaser_lose_prob = win_proba[0] * 100
+        # Determine result - convert numpy to Python float for JSON serialization
+        chaser_win_prob = float(win_proba[1]) * 100
+        chaser_lose_prob = float(win_proba[0]) * 100
         
         result = {
             "batting_team": request.batting_team,
@@ -947,44 +951,84 @@ def _generate_referral_code(existing_codes: set):
 
 @app.post("/users/register")
 def register_user(data: dict, db = Depends(get_db)):
-    """Register a new user using unified database"""
+    """Register a new user using Supabase (cloud) with local DB fallback"""
     
     username = data.get("username", "").strip()
     password = data.get("password", "").strip()
     display_name = data.get("display_name", username)
+    email = data.get("email", "").strip()
+    referral_code = data.get("referral_code", "").strip()
     
     if not username:
         return {"ok": False, "error": "username is required"}
     if not password:
         return {"ok": False, "error": "password is required"}
+    if not email:
+        email = f"{username}@wicketly.ai"
     
+    # Try Supabase first (cloud authentication)
     try:
-        user = create_user(
-            db,
-            username=username,
-            display_name=display_name,
+        result = supabase_client.signup_user(
+            email=email,
             password=password,
-            email=f"{username}@cricket.local"
+            display_name=display_name,
+            username=username
         )
         
-        return {
-            "ok": True,
-            "user": user.to_dict(),
-            "token": str(uuid.uuid4())
-        }
-    except ValueError as e:
-        if "already exists" in str(e):
-            return {"ok": False, "error": "username exists"}
+        if result.get("ok"):
+            # Apply referral if provided
+            if referral_code and result.get("user", {}).get("id"):
+                supabase_client.apply_referral(result["user"]["id"], referral_code)
+            
+            return {
+                "ok": True,
+                "user": result["user"],
+                "token": result.get("session", {}).access_token if result.get("session") else str(uuid.uuid4()),
+                "welcome": {
+                    "message": f"Welcome to Wicketly.ai, {display_name}! 🏏",
+                    "services": ["Match Predictions", "Live Predictions", "Player Analytics", "PVP Mode"]
+                }
+            }
         else:
-            return {"ok": False, "error": str(e)}
-    except Exception as e:
-        print(f"Registration error: {e}")
-        return {"ok": False, "error": "Registration failed"}
+            # If Supabase fails, try local database as fallback
+            print(f"Supabase signup failed: {result.get('error')}, trying local DB")
+            raise Exception(result.get("error", "Supabase error"))
+            
+    except Exception as supabase_error:
+        print(f"Supabase error: {supabase_error}")
+        
+        # Fallback to local database
+        try:
+            user = create_user(
+                db,
+                username=username,
+                display_name=display_name,
+                password=password,
+                email=email
+            )
+            
+            return {
+                "ok": True,
+                "user": user.to_dict(),
+                "token": str(uuid.uuid4()),
+                "welcome": {
+                    "message": f"Welcome to Wicketly.ai, {display_name}! 🏏",
+                    "services": ["Match Predictions", "Live Predictions", "Player Analytics", "PVP Mode"]
+                }
+            }
+        except ValueError as e:
+            if "already exists" in str(e):
+                return {"ok": False, "error": "username exists"}
+            else:
+                return {"ok": False, "error": str(e)}
+        except Exception as e:
+            print(f"Local registration error: {e}")
+            return {"ok": False, "error": str(supabase_error)}
 
 
 @app.post("/users/login")
 def login_user(data: dict, db = Depends(get_db)):
-    """Authenticate a user using unified database"""
+    """Authenticate a user using Supabase (cloud) with local DB fallback"""
     
     username_or_email = data.get("username", "").strip() or data.get("email", "").strip()
     password = data.get("password", "").strip()
@@ -992,17 +1036,42 @@ def login_user(data: dict, db = Depends(get_db)):
     if not username_or_email or not password:
         return {"ok": False, "error": "username and password are required"}
 
+    # Try Supabase first
     try:
-        # Authenticate user
-        user = authenticate_user(db, username_or_email, password)
+        # Check if input is email or username
+        if "@" in username_or_email:
+            result = supabase_client.login_user(username_or_email, password)
+        else:
+            result = supabase_client.login_with_username(username_or_email, password)
         
-        if user:
+        if result.get("ok"):
             return {
                 "ok": True,
-                "user": user.to_dict(),
-                "token": str(uuid.uuid4())
+                "user": result["user"],
+                "token": result.get("token", str(uuid.uuid4()))
             }
         else:
+            # If Supabase fails, try local database
+            print(f"Supabase login failed: {result.get('error')}, trying local DB")
+            raise Exception(result.get("error", "Supabase error"))
+            
+    except Exception as supabase_error:
+        print(f"Supabase login error: {supabase_error}")
+        
+        # Fallback to local database
+        try:
+            user = authenticate_user(db, username_or_email, password)
+            
+            if user:
+                return {
+                    "ok": True,
+                    "user": user.to_dict(),
+                    "token": str(uuid.uuid4())
+                }
+            else:
+                return {"ok": False, "error": "Invalid username or password"}
+        except Exception as e:
+            print(f"Local login error: {e}")
             return {"ok": False, "error": "Invalid username or password"}
             
     except Exception as e:

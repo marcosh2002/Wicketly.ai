@@ -96,15 +96,25 @@ function LivePredictor() {
           bowling_team: form.bowlingTeam,
           target: target,
           current_score: currentScore,
-          overs_completed: overs,
-          wickets_lost: wickets,
+          overs: overs,
+          wickets: wickets,
         }),
       });
 
       if (!response.ok) throw new Error("Prediction failed");
 
       const data = await response.json();
-      setResult(data);
+      // Map API response to frontend expected fields
+      const mappedResult = {
+        chaser_wins: data.prediction === "Chasing team wins",
+        predicted_winner: data.prediction === "Chasing team wins" ? form.battingTeam : form.bowlingTeam,
+        chaser_win_prob: data.chaser_win_probability,
+        defender_win_prob: data.defender_win_probability,
+        confidence: Math.max(data.chaser_win_probability, data.defender_win_probability),
+        analysis: data.analysis,
+        match_state: data.match_state,
+      };
+      setResult(mappedResult);
     } catch (err) {
       setError("Failed to get prediction. Please try again.");
       console.error(err);
