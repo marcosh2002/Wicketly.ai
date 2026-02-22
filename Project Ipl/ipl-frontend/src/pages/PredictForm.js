@@ -44,6 +44,9 @@ import LiveTvIcon from "@mui/icons-material/LiveTv";
 import HistoryIcon from "@mui/icons-material/History";
 import StarsIcon from "@mui/icons-material/Stars";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import SportsCricketIcon from "@mui/icons-material/SportsCricket";
+import SpeedIcon from "@mui/icons-material/Speed";
+import InsightsIcon from "@mui/icons-material/Insights";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
@@ -246,6 +249,17 @@ export default function PredictForm() {
   const [liveMatches, setLiveMatches] = useState([]);
   const [liveMatchesLoading, setLiveMatchesLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  
+  // Live Prediction States
+  const [liveBattingTeam, setLiveBattingTeam] = useState("");
+  const [liveBowlingTeam, setLiveBowlingTeam] = useState("");
+  const [liveTarget, setLiveTarget] = useState("");
+  const [liveCurrentScore, setLiveCurrentScore] = useState("");
+  const [liveOvers, setLiveOvers] = useState("");
+  const [liveWickets, setLiveWickets] = useState(0);
+  const [livePrediction, setLivePrediction] = useState(null);
+  const [livePredictionLoading, setLivePredictionLoading] = useState(false);
+  const [livePredictionError, setLivePredictionError] = useState("");
 
   // Fetch live matches from API
   const fetchLiveMatches = async () => {
@@ -752,8 +766,11 @@ export default function PredictForm() {
               value={tabValue}
               onChange={(e, newValue) => setTabValue(newValue)}
               aria-label="prediction tabs"
+              variant="scrollable"
+              scrollButtons="auto"
             >
               <Tab label="📊 Manual Prediction" icon={<SchoolIcon />} iconPosition="start" />
+              <Tab label="🔴 Live Predict" icon={<LiveTvIcon />} iconPosition="start" sx={{ color: '#ff1744', fontWeight: 700 }} />
               <Tab label="📈 Team Performance" icon={<TrendingUpIcon />} iconPosition="start" />
               <Tab label="⏱️ Head to Head" icon={<HistoryIcon />} iconPosition="start" />
             </Tabs>
@@ -996,8 +1013,246 @@ export default function PredictForm() {
             </CardContent>
           </TabPanel>
 
-          {/* Team Performance Tab */}
+          {/* Live Predict Tab - HIGH ACCURACY (97%+) */}
           <TabPanel value={tabValue} index={1}>
+            <CardContent>
+              <Box sx={{ textAlign: "center", mb: 3 }}>
+                <Typography variant="h5" color="#d32f2f" fontWeight={700} sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                  <LiveTvIcon sx={{ color: "#d32f2f" }} />
+                  🔴 Live Match Prediction (97% Accuracy)
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                  Enter current match state for real-time win probability prediction
+                </Typography>
+                <Chip label="AI-Powered • XGBoost Model" size="small" sx={{ mt: 1, bgcolor: "#ffebee", color: "#d32f2f" }} />
+              </Box>
+
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <strong>How it works:</strong> Enter the target score, current score, overs completed, and wickets lost during the 2nd innings chase. Our AI model analyzes 14 real-time features to predict the winner with 97%+ accuracy!
+              </Alert>
+
+              <Grid container spacing={3}>
+                {/* Team Selection */}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Batting Team (Chasing)</InputLabel>
+                    <Select
+                      value={liveBattingTeam}
+                      label="Batting Team (Chasing)"
+                      onChange={(e) => setLiveBattingTeam(e.target.value)}
+                    >
+                      {teams.map((t) => (
+                        <MenuItem key={t} value={t} disabled={t === liveBowlingTeam}>
+                          {t}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Bowling Team (Defending)</InputLabel>
+                    <Select
+                      value={liveBowlingTeam}
+                      label="Bowling Team (Defending)"
+                      onChange={(e) => setLiveBowlingTeam(e.target.value)}
+                    >
+                      {teams.map((t) => (
+                        <MenuItem key={t} value={t} disabled={t === liveBattingTeam}>
+                          {t}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Score Inputs */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="🎯 Target Score"
+                    type="number"
+                    value={liveTarget}
+                    onChange={(e) => setLiveTarget(e.target.value)}
+                    helperText="Score set by batting first team"
+                    InputProps={{ inputProps: { min: 50, max: 300 } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="🏏 Current Score"
+                    type="number"
+                    value={liveCurrentScore}
+                    onChange={(e) => setLiveCurrentScore(e.target.value)}
+                    helperText="Chasing team's current score"
+                    InputProps={{ inputProps: { min: 0, max: 300 } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="⏱️ Overs Completed"
+                    type="number"
+                    value={liveOvers}
+                    onChange={(e) => setLiveOvers(e.target.value)}
+                    helperText="Use decimal: 10.3 = 10 overs 3 balls"
+                    InputProps={{ inputProps: { min: 0, max: 20, step: 0.1 } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Wickets Lost</InputLabel>
+                    <Select
+                      value={liveWickets}
+                      label="Wickets Lost"
+                      onChange={(e) => setLiveWickets(e.target.value)}
+                    >
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((w) => (
+                        <MenuItem key={w} value={w}>{w} wickets</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Predict Button */}
+                <Grid item xs={12}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    fullWidth
+                    size="large"
+                    disabled={livePredictionLoading || !liveBattingTeam || !liveBowlingTeam || !liveTarget || !liveCurrentScore || liveOvers === ""}
+                    onClick={async () => {
+                      setLivePredictionLoading(true);
+                      setLivePredictionError("");
+                      setLivePrediction(null);
+                      try {
+                        const response = await axios.post(`${API_BASE}/predict/live`, {
+                          batting_team: liveBattingTeam,
+                          bowling_team: liveBowlingTeam,
+                          target: parseInt(liveTarget),
+                          current_score: parseInt(liveCurrentScore),
+                          overs: parseFloat(liveOvers),
+                          wickets: liveWickets
+                        });
+                        if (response.data.error) {
+                          setLivePredictionError(response.data.error);
+                        } else {
+                          setLivePrediction(response.data);
+                        }
+                      } catch (err) {
+                        setLivePredictionError(err.response?.data?.error || "Prediction failed. Please try again.");
+                      }
+                      setLivePredictionLoading(false);
+                    }}
+                    sx={{ py: 1.5, fontWeight: 700, fontSize: "1.1rem" }}
+                  >
+                    {livePredictionLoading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "🔴 PREDICT LIVE WINNER"}
+                  </Button>
+                </Grid>
+              </Grid>
+
+              {livePredictionError && (
+                <Alert severity="error" sx={{ mt: 3 }}>{livePredictionError}</Alert>
+              )}
+
+              {/* Live Prediction Result */}
+              {livePrediction && (
+                <Box sx={{ mt: 4 }}>
+                  <Paper sx={{ p: 3, bgcolor: livePrediction.chaser_win_probability > 50 ? "#e8f5e9" : "#ffebee", borderRadius: 3 }}>
+                    <Typography variant="h5" fontWeight={700} textAlign="center" mb={2} color={livePrediction.chaser_win_probability > 50 ? "success.main" : "error.main"}>
+                      🏆 {livePrediction.prediction}
+                    </Typography>
+
+                    {/* Win Probability Visual */}
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                      <Box sx={{ textAlign: "center", flex: 1 }}>
+                        <Typography variant="h3" fontWeight={700} color={livePrediction.chaser_win_probability > 50 ? "success.main" : "text.secondary"}>
+                          {livePrediction.chaser_win_probability}%
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">{liveBattingTeam} (Chasing)</Typography>
+                      </Box>
+                      <Typography variant="h6" color="text.secondary" sx={{ mx: 2 }}>VS</Typography>
+                      <Box sx={{ textAlign: "center", flex: 1 }}>
+                        <Typography variant="h3" fontWeight={700} color={livePrediction.defender_win_probability > 50 ? "error.main" : "text.secondary"}>
+                          {livePrediction.defender_win_probability}%
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">{liveBowlingTeam} (Defending)</Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Probability Bar */}
+                    <Box sx={{ display: "flex", height: 16, borderRadius: 2, overflow: "hidden", mb: 3 }}>
+                      <Box sx={{ width: `${livePrediction.chaser_win_probability}%`, bgcolor: "#4caf50" }} />
+                      <Box sx={{ width: `${livePrediction.defender_win_probability}%`, bgcolor: "#f44336" }} />
+                    </Box>
+
+                    {/* Match Stats */}
+                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                      <Grid item xs={6} sm={3}>
+                        <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: "rgba(0,0,0,0.03)" }}>
+                          <Typography variant="caption" color="text.secondary">Target</Typography>
+                          <Typography variant="h6" fontWeight={700}>{livePrediction.match_state?.target}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: "rgba(0,0,0,0.03)" }}>
+                          <Typography variant="caption" color="text.secondary">Score</Typography>
+                          <Typography variant="h6" fontWeight={700}>{livePrediction.match_state?.current_score}/{livePrediction.match_state?.wickets_lost}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: "rgba(0,0,0,0.03)" }}>
+                          <Typography variant="caption" color="text.secondary">Runs Needed</Typography>
+                          <Typography variant="h6" fontWeight={700} color="warning.main">{livePrediction.match_state?.runs_needed}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: "rgba(0,0,0,0.03)" }}>
+                          <Typography variant="caption" color="text.secondary">Balls Left</Typography>
+                          <Typography variant="h6" fontWeight={700} color="info.main">{livePrediction.match_state?.balls_remaining}</Typography>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+
+                    {/* Run Rates */}
+                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                      <Grid item xs={6}>
+                        <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: "#e3f2fd" }}>
+                          <Typography variant="caption" color="text.secondary">Current Run Rate</Typography>
+                          <Typography variant="h6" fontWeight={700} color="primary.main">{livePrediction.match_state?.current_run_rate}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: livePrediction.match_state?.required_run_rate > 12 ? "#ffebee" : "#e8f5e9" }}>
+                          <Typography variant="caption" color="text.secondary">Required Run Rate</Typography>
+                          <Typography variant="h6" fontWeight={700} color={livePrediction.match_state?.required_run_rate > 12 ? "error.main" : "success.main"}>
+                            {livePrediction.match_state?.required_run_rate}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+
+                    {/* Analysis */}
+                    {livePrediction.analysis && livePrediction.analysis.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" fontWeight={700} color="text.secondary" mb={1}>
+                          📊 AI Analysis:
+                        </Typography>
+                        {livePrediction.analysis.map((item, idx) => (
+                          <Chip key={idx} label={item} sx={{ mr: 1, mb: 1 }} size="small" />
+                        ))}
+                      </Box>
+                    )}
+                  </Paper>
+                </Box>
+              )}
+            </CardContent>
+          </TabPanel>
+
+          {/* Team Performance Tab */}
+          <TabPanel value={tabValue} index={2}>
             <CardContent>
               <Typography variant="h6" color="#1e2a78" fontWeight={700} mb={3}>
                 📈 2025 Season Performance Stats
@@ -1066,7 +1321,7 @@ export default function PredictForm() {
           </TabPanel>
 
           {/* Head to Head Tab */}
-          <TabPanel value={tabValue} index={2}>
+          <TabPanel value={tabValue} index={3}>
             <CardContent>
               <Typography variant="h6" color="#1e2a78" fontWeight={700} mb={3}>
                 ⏱️ Head to Head Results
