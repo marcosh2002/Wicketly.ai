@@ -15,6 +15,7 @@ import ExploreAnalytics from "./pages/ExploreAnalytics";
 import PVP from "./pages/PVP";
 import Points from "./pages/Points";
 import Spin from "./pages/Spin";
+import LivePredictor from "./pages/LivePredictor";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -739,6 +740,7 @@ function AppContent({ showWelcome, setShowWelcome }) {
               <Route path="/points" element={<Points />} />
               <Route path="/spin" element={<Spin />} />
               <Route path="/predict" element={<PredictForm />} />
+              <Route path="/live" element={<LivePredictor />} />
               <Route path="/explore" element={<ExploreAnalytics />} />
               <Route path="/team/:teamName" element={<TeamDetails />} />
             </Routes>

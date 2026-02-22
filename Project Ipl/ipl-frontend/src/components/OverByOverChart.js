@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Box, Typography } from '@mui/material';
-
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000';
+import API_BASE from '../config';
 
 async function fetchOverByOver(team1, team2, overs) {
   const resp = await axios.get(`${API_BASE}/analytics/over-by-over`, {

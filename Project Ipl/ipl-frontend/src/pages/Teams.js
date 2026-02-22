@@ -3,6 +3,7 @@ import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import { IPL_TEAMS } from "../data/iplTeams";
+import API_BASE from "../config";
 
 export default function Teams() {
   const { user, requireAuth, openSignup, openLogin } = useContext(AuthContext);
@@ -10,7 +11,7 @@ export default function Teams() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/teams")
+    axios.get(`${API_BASE}/teams`)
       .then(res => setTeams(res.data.teams && res.data.teams.length ? res.data.teams : IPL_TEAMS))
       .catch(() => setTeams(IPL_TEAMS));
   }, []);

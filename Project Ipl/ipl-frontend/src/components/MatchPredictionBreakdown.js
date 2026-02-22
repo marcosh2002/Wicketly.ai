@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { Box, Button, MenuItem, Select, TextField, Typography, LinearProgress } from '@mui/material';
+import API_BASE from '../config';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000';
+// This API_BASE is now imported from config.js, but keep local for backward compatibility
 
 async function fetchPrediction(team1, team2, venue, weather) {
   // quick GET predict endpoint uses team1_score and team2_score and overs; use defaults for a baseline

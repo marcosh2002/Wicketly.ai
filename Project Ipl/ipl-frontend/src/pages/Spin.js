@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import API_BASE from '../config';
 
 export default function Spin() {
   const navigate = useNavigate();
@@ -127,7 +128,7 @@ export default function Spin() {
         return;
       }
       console.log(`📊 Fetching balance for user: "${user.username}"`);
-      const response = await fetch(`http://127.0.0.1:8000/users/${user.username}/balance`);
+      const response = await fetch(`${API_BASE}/users/${user.username}/balance`);
       const data = await response.json();
       console.log('✅ Balance loaded:', data);
       if (data.ok) {
@@ -145,7 +146,7 @@ export default function Spin() {
         console.warn('⚠️ No username for spin status fetch. User:', user);
         return;
       }
-      const response = await fetch(`http://127.0.0.1:8000/users/${user.username}/spin_status`);
+      const response = await fetch(`${API_BASE}/users/${user.username}/spin_status`);
       const data = await response.json();
       console.log('✅ Spin status loaded:', data);
       if (data.ok) {
@@ -193,7 +194,7 @@ export default function Spin() {
       clearInterval(spinInterval);
 
       // Call spin endpoint
-      const response = await fetch(`http://127.0.0.1:8000/users/${user.username}/spin`, {
+      const response = await fetch(`${API_BASE}/users/${user.username}/spin`, {
         method: 'POST'
       });
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
+import API_BASE from "../config";
 
 export default function PVP() {
   const [batsmen, setBatsmen] = useState([]);
@@ -19,7 +20,7 @@ export default function PVP() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/pvp/players')
+    axios.get(`${API_BASE}/pvp/players`)
       .then(res => {
         setBatsmen(res.data.batsmen || []);
         setBowlers(res.data.bowlers || []);
@@ -44,7 +45,7 @@ export default function PVP() {
       else setBowlerOptions([]);
       return;
     }
-    axios.get('http://127.0.0.1:8000/pvp/search', { params: { q, limit: 50, role: type } })
+    axios.get(`${API_BASE}/pvp/search`, { params: { q, limit: 50, role: type } })
       .then(res => {
         const items = (res.data.results || []).map(r => ({ label: r.name, role: r.role, has_bowled: r.has_bowled, has_batted: r.has_batted }));
         if (type === 'batsman') setBatsmanOptions(items);
@@ -63,7 +64,7 @@ export default function PVP() {
     }
     const name = batsmanValue.label;
     setBatsmanProfile({ loading: true });
-    axios.get('http://127.0.0.1:8000/pvp/player', { params: { name } })
+    axios.get(`${API_BASE}/pvp/player`, { params: { name } })
       .then(res => {
         setBatsmanProfile({ loading: false, data: res.data.profile });
       })
@@ -79,7 +80,7 @@ export default function PVP() {
     }
     const name = bowlerValue.label;
     setBowlerProfile({ loading: true });
-    axios.get('http://127.0.0.1:8000/pvp/player', { params: { name } })
+    axios.get(`${API_BASE}/pvp/player`, { params: { name } })
       .then(res => {
         setBowlerProfile({ loading: false, data: res.data.profile });
       })
@@ -98,7 +99,7 @@ export default function PVP() {
 
     setLoading(true);
     setError(null);
-    axios.get('http://127.0.0.1:8000/pvp', { params: { batsman: batsmanName, bowler: bowlerName } })
+    axios.get(`${API_BASE}/pvp`, { params: { batsman: batsmanName, bowler: bowlerName } })
       .then(res => {
         setData(res.data.data || null);
         setLoading(false);

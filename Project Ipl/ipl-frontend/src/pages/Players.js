@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
+import API_BASE from "../config";
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -418,7 +419,7 @@ const Players = () => {
 
   useEffect(() => {
     setLoading(true);
-    axios.get("http://127.0.0.1:8000/players")
+    axios.get(`${API_BASE}/players`)
       .then(res => {
         setPlayers(res.data.players || []);
         setLoading(false);

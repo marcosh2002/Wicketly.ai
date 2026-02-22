@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AccountCircle, Logout } from "@mui/icons-material";
 import { AuthContext } from "../context/AuthContext";
+import API_BASE from "../config";
 
 export default function Navbar({ onOpenLogin, onOpenSignup }) {
   const { user, logout, updateUserTokens } = useContext(AuthContext);
@@ -15,7 +16,7 @@ export default function Navbar({ onOpenLogin, onOpenSignup }) {
     if (user && user.username) {
       const fetchTokens = async () => {
         try {
-          const response = await fetch(`http://127.0.0.1:8000/users/${user.username}/balance`);
+          const response = await fetch(`${API_BASE}/users/${user.username}/balance`);
           const data = await response.json();
           if (data.ok && data.tokens !== undefined) {
             updateUserTokens(data.tokens);
@@ -53,6 +54,7 @@ export default function Navbar({ onOpenLogin, onOpenSignup }) {
         <Link to="/players" style={{ color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: "500", transition: "0.3s", paddingBottom: "2px", borderBottom: "2px solid transparent", cursor: "pointer" }} onMouseEnter={(e) => e.target.style.borderColor = "#10b981"} onMouseLeave={(e) => e.target.style.borderColor = "transparent"}>Players</Link>
         <Link to="/pvp" style={{ color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: "500", transition: "0.3s", paddingBottom: "2px", borderBottom: "2px solid transparent", cursor: "pointer" }} onMouseEnter={(e) => e.target.style.borderColor = "#10b981"} onMouseLeave={(e) => e.target.style.borderColor = "transparent"}>PVP</Link>
         <Link to="/predict" style={{ color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: "500", transition: "0.3s", paddingBottom: "2px", borderBottom: "2px solid transparent", cursor: "pointer" }} onMouseEnter={(e) => e.target.style.borderColor = "#10b981"} onMouseLeave={(e) => e.target.style.borderColor = "transparent"}>Predict</Link>
+        <Link to="/live" style={{ color: "#ff1744", textDecoration: "none", fontSize: "15px", fontWeight: "700", transition: "0.3s", paddingBottom: "2px", borderBottom: "2px solid transparent", cursor: "pointer" }} onMouseEnter={(e) => e.target.style.borderColor = "#ff1744"} onMouseLeave={(e) => e.target.style.borderColor = "transparent"}>🔴 Live</Link>
         <Link to="/points" style={{ color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: "500", transition: "0.3s", paddingBottom: "2px", borderBottom: "2px solid transparent", cursor: "pointer" }} onMouseEnter={(e) => e.target.style.borderColor = "#10b981"} onMouseLeave={(e) => e.target.style.borderColor = "transparent"}>Points</Link>
         <Link to="/spin" style={{ color: "#FFD700", textDecoration: "none", fontSize: "15px", fontWeight: "700", transition: "0.3s", paddingBottom: "2px", borderBottom: "2px solid transparent", cursor: "pointer" }} onMouseEnter={(e) => e.target.style.borderColor = "#FFD700"} onMouseLeave={(e) => e.target.style.borderColor = "transparent"}>Spin & Win</Link>
       </div>
@@ -135,7 +137,7 @@ export default function Navbar({ onOpenLogin, onOpenSignup }) {
                           if (!referralInfo && !loadingReferral) {
                             setLoadingReferral(true);
                             try {
-                              const res = await fetch(`http://127.0.0.1:8000/users/${encodeURIComponent(user.username)}/referral`);
+                              const res = await fetch(`${API_BASE}/users/${encodeURIComponent(user.username)}/referral`);
                               const d = await res.json();
                               if (res.ok) setReferralInfo(d);
                             } catch (e) {

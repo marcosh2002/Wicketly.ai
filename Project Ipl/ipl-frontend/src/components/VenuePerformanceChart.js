@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Box, Typography } from '@mui/material';
-
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000';
+import API_BASE from '../config';
 
 async function fetchVenue(venue) {
   const resp = await axios.get(`${API_BASE}/analytics/venue`, { params: { venue } });
