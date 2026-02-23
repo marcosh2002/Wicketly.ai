@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
@@ -196,7 +196,8 @@ export default function Matches() {
           const filtered = matches.filter(m=>{
             if (!m) return false;
             if (filterYear) {
-              const year = m.date ? (new Date(m.date).getFullYear && !isNaN(new Date(m.date).getFullYear()) ? new Date(m.date).getFullYear() : ((m.date.match(/(20\d{2}|19\d{2})/)||[null])[0])) : 'Unknown';
+              const parsedDate = new Date(m.date);
+              const year = m.date ? (!isNaN(parsedDate.getFullYear()) ? parsedDate.getFullYear() : ((m.date.match(/(20\d{2}|19\d{2})/)||[null])[0])) : 'Unknown';
               if (String(year) !== String(filterYear)) return false;
             }
             if (filterTeam1 && m.team1 !== filterTeam1) return false;
@@ -220,8 +221,9 @@ export default function Matches() {
           }
 
           const groups = filtered.reduce((acc, m) => {
-            const yearMatch = (m.date && new Date(m.date).getFullYear && !isNaN(new Date(m.date).getFullYear()))
-              ? new Date(m.date).getFullYear()
+            const parsedDate = new Date(m.date);
+            const yearMatch = (m.date && !isNaN(parsedDate.getFullYear()))
+              ? parsedDate.getFullYear()
               : (m.date && (m.date.match(/(20\d{2}|19\d{2})/) || [0])[0]);
             const year = yearMatch || 'Unknown';
             acc[year] = acc[year] || [];
@@ -239,8 +241,7 @@ export default function Matches() {
 
           return yearKeys.map((yk, yi) => {
             const yearKey = yk;
-            const items = groups[yearKey];
-            items.sort((a, b) => {
+            const items = groups[yearKey].slice().sort((a, b) => {
               const da = a.date ? new Date(a.date) : new Date(0);
               const db = b.date ? new Date(b.date) : new Date(0);
               return db - da;
@@ -260,14 +261,14 @@ export default function Matches() {
                       style={{
                         padding: '24px',
                         background: '#ffffff',
-                        border: '2px solid #0b254530',
+                        border: '2px solid rgba(11, 37, 69, 0.19)',
                         borderRadius: '12px',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         boxShadow: '0 4px 12px rgba(11,37,69,0.08)'
                       }}
                     >
-                      <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid #00c6ff40' }}>
+                      <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid rgba(0, 198, 255, 0.25)' }}>
                         <h4 style={{ margin: 0, color: '#0b2545', fontSize: '1.15rem', fontWeight: 700 }}>
                           <span style={{ color: '#FF6E1A' }}>{match.team1 || 'N/A'}</span>
                           <span style={{ color: '#999', margin: '0 8px' }}>vs</span>
@@ -290,7 +291,7 @@ export default function Matches() {
                         </div>
                       </div>
 
-                      <div style={{ background: match.winner && match.winner !== 'TBD' ? 'linear-gradient(135deg, #2e7d3215, #4caf5015)' : 'linear-gradient(135deg, #f5f5f515, #e0e0e015)', padding: '14px', borderRadius: '8px', borderLeft: `4px solid ${match.winner && match.winner !== 'TBD' ? '#4caf50' : '#ff9800'}` }}>
+                      <div style={{ background: match.winner && match.winner !== 'TBD' ? 'linear-gradient(135deg, rgba(46, 125, 50, 0.08), rgba(76, 175, 80, 0.06))' : 'linear-gradient(135deg, rgba(245, 245, 245, 0.08), rgba(224, 224, 224, 0.06))', padding: '14px', borderRadius: '8px', borderLeft: `4px solid ${match.winner && match.winner !== 'TBD' ? '#4caf50' : '#ff9800'}` }}>
                         <span style={{ color: '#666', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase' }}>Result</span>
                         <div style={{ color: match.winner && match.winner !== 'TBD' ? '#2e7d32' : '#ff9800', fontWeight: 700, fontSize: '1.05rem', marginTop: '4px' }}>{match.winner && match.winner !== 'TBD' ? `🏆 ${match.winner}` : '⏳ TBD'}</div>
                       </div>

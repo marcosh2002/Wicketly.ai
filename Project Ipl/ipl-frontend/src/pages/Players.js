@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import "./Players.css";
 
 ChartJS.register(
   CategoryScale,
@@ -65,7 +66,7 @@ const playerImages = {
   'DP Conway': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/556.png',
   'D Padikkal': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/440.png',
   'PP Shaw': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/215.png',
-  'Harpreet Brar': 'https://bcciplayerimages.s3.ap-south-1.amazonaws..com/ipl/IPLHeadshot2023/309.png',
+  'Harpreet Brar': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/309.png',
   'Arshdeep Singh': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/243.png',
   'JM Bairstow': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/188.png',
   'LS Livingstone': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/189.png',
@@ -102,7 +103,7 @@ const playerImages = {
   'PN Mankad': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/130.png',
   'MR Marsh': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/207.png',
   'L Ngidi': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/504.png',
-  'M Jansen': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot20A23/634.png',
+  'M Jansen': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/634.png',
   'Fazalhaq Farooqi': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/997.png',
   'Umran Malik': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/616.png',
   'Mayank Agarwal': 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/14.png',
@@ -324,6 +325,29 @@ const teamColors = {
   'Gujarat Titans': '#1B2133'
 };
 
+// Premium Skeleton Component for Loading
+const PlayerSkeleton = () => (
+  <div className="premium-player-skeleton">
+    <div className="premium-player-skeleton-header">
+      <div className="premium-player-skeleton-image" />
+    </div>
+    <div className="premium-player-skeleton-content">
+      <div className="premium-player-skeleton-name" />
+      <div className="premium-player-skeleton-team" />
+      <div className="premium-player-skeleton-stats">
+        <div className="premium-player-skeleton-stat">
+          <div className="premium-player-skeleton-stat-label" />
+          <div className="premium-player-skeleton-stat-value" />
+        </div>
+        <div className="premium-player-skeleton-stat">
+          <div className="premium-player-skeleton-stat-label" />
+          <div className="premium-player-skeleton-stat-value" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const PlayerCard = ({ player, delay }) => {
   const playerName = player.Player_Name.trim();
   const playerImage = playerImages[playerName] || playerImages['default'];
@@ -335,75 +359,36 @@ const PlayerCard = ({ player, delay }) => {
   };
 
   const teamFullName = getTeamFullName(player.Team);
-  const playerTeamColor = teamColors[teamFullName] || '#757575';
+  const playerTeamColor = teamColors[teamFullName] || '#10b981';
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      className="premium-player-card"
+      style={{ '--team-color': playerTeamColor }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay * 0.05 }}
-      whileHover={{ y: -8, boxShadow: `0 15px 30px -10px ${playerTeamColor}` }}
-      style={{
-        background: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(229, 231, 235, 0.5)',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        boxShadow: '0 8px 20px -8px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease',
-        fontFamily: "'Roboto', sans-serif",
-        color: '#1f2937',
-      }}
+      transition={{ delay: delay * 0.04, duration: 0.5 }}
+      whileHover={{ y: -12 }}
     >
-      <div style={{
-        height: '120px',
-        background: `linear-gradient(45deg, ${playerTeamColor}, ${playerTeamColor}d0)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative'
-      }}>
+      <div className="premium-player-header" style={{ background: `linear-gradient(135deg, ${playerTeamColor}, ${playerTeamColor}c0)` }}>
         <img
           src={playerImage}
           alt={playerName}
-          style={{
-            width: '100px',
-            height: '100px',
-            borderRadius: '50%',
-            border: '4px solid white',
-            boxShadow: '0 5px 15px rgba(0,0,0,0.2)',
-            objectFit: 'cover'
-          }}
+          className="premium-player-image"
           onError={(e) => { e.target.src = playerImages['default']; }}
         />
       </div>
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h3 style={{
-          margin: '0 0 8px 0',
-          fontSize: '1.3em',
-          fontWeight: 700,
-          color: '#111827'
-        }}>{playerName}</h3>
-        <p style={{
-          margin: 0,
-          fontSize: '0.95em',
-          color: playerTeamColor,
-          fontWeight: 600
-        }}>{teamFullName}</p>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          marginTop: '20px',
-          paddingTop: '15px',
-          borderTop: '1px solid #e5e7eb'
-        }}>
-          <div>
-            <p style={{ margin: '0', fontSize: '0.8em', color: '#6b7280' }}>Role</p>
-            <p style={{ margin: '4px 0 0 0', fontWeight: 600, fontSize: '1em' }}>{player.Batting_Type || 'N/A'}</p>
+      <div className="premium-player-content">
+        <h3 className="premium-player-name">{playerName}</h3>
+        <p className="premium-player-team" style={{ color: playerTeamColor }}>{teamFullName}</p>
+        <div className="premium-player-stats">
+          <div className="premium-player-stat">
+            <p className="premium-player-stat-label">Role</p>
+            <p className="premium-player-stat-value">{player.Batting_Type || 'N/A'}</p>
           </div>
-          <div>
-            <p style={{ margin: '0', fontSize: '0.8em', color: '#6b7280' }}>Nationality</p>
-            <p style={{ margin: '4px 0 0 0', fontWeight: 600, fontSize: '1em' }}>{player.Country || 'N/A'}</p>
+          <div className="premium-player-stat">
+            <p className="premium-player-stat-label">Nationality</p>
+            <p className="premium-player-stat-value">{player.Country || 'N/A'}</p>
           </div>
         </div>
       </div>
@@ -463,98 +448,64 @@ const Players = () => {
   };
 
   return (
-    <div style={{
-      padding: "40px 20px",
-      minHeight: "100vh",
-      background: "transparent"
-    }}>
+    <div className="premium-players-container">
       <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
         <motion.div
+          className="premium-players-header"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          style={{ textAlign: 'center', marginBottom: '40px' }}
         >
-          <h1 style={{
-            fontSize: '3.5em',
-            fontWeight: 800,
-            color: '#ffffff',
-            letterSpacing: '-1px'
-          }}>IPL Player Universe</h1>
-          <p style={{
-            fontSize: '1.2em',
-            color: '#cccccc',
-            marginTop: '10px'
-          }}>Explore the profiles of every player in the league.</p>
+          <h1 className="premium-players-title">IPL Player Universe</h1>
+          <p className="premium-players-subtitle">Explore the profiles of every player in the league</p>
         </motion.div>
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '20px',
-          marginBottom: '40px',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{ position: "relative", flexGrow: 1, maxWidth: "600px" }}>
+        <motion.div 
+          className="premium-search-bar"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <div className="premium-search-input-wrapper">
+            <span className="premium-search-icon">🔍</span>
             <input
               type="text"
               placeholder="Search for a player..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "15px 20px 15px 50px",
-                border: "1px solid #d1d5db",
-                borderRadius: "12px",
-                fontSize: "16px",
-                background: "#fff",
-                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-                transition: "all 0.3s",
-                outline: "none",
-              }}
+              className="premium-search-input"
             />
-            <span style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', fontSize: '20px' }}>
-              🔍
-            </span>
           </div>
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            style={{
-              padding: "15px 20px",
-              border: "1px solid #d1d5db",
-              borderRadius: "12px",
-              fontSize: "16px",
-              background: "#fff",
-              boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-              cursor: 'pointer'
-            }}
+            className="premium-sort-select"
           >
             <option value="Player_Name">Sort by Name</option>
             <option value="Team">Sort by Team</option>
             <option value="Nationality">Sort by Nationality</option>
           </select>
-        </div>
+        </motion.div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', fontSize: '1.2em', color: '#4b5563' }}>Loading players...</div>
+          <div className="premium-players-grid">
+            {[...Array(12)].map((_, idx) => (
+              <PlayerSkeleton key={idx} />
+            ))}
+          </div>
         ) : (
           <>
             {filteredAndSortedPlayers.length > 0 ? (
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "30px"
-              }}>
+              <div className="premium-players-grid">
                 {filteredAndSortedPlayers.map((player, idx) => (
                   <PlayerCard key={player.Player_ID || idx} player={player} delay={idx} />
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '50px', background: 'white', borderRadius: '16px' }}>
-                <h3 style={{ fontSize: '1.5em', color: '#1f2937' }}>No players found</h3>
-                <p style={{ color: '#6b7280' }}>Try adjusting your search or sort criteria.</p>
+              <div className="premium-no-results">
+                <div className="premium-no-results-icon">🏏</div>
+                <h3 className="premium-no-results-title">No players found</h3>
+                <p className="premium-no-results-text">Try adjusting your search or sort criteria.</p>
               </div>
             )}
           </>
@@ -562,13 +513,30 @@ const Players = () => {
 
         {!loading && players.length > 0 && (
           <motion.div
+            className="premium-chart-section"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.5 }}
-            style={{ marginTop: '60px', background: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 8px 20px -8px rgba(0, 0, 0, 0.1)' }}
           >
-            <h2 style={{ textAlign: 'center', color: '#1f2937', marginBottom: '30px' }}>Player Nationality Distribution</h2>
-            <Bar data={chartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+            <h2 className="premium-chart-title">Player Nationality Distribution</h2>
+            <Bar 
+              data={chartData} 
+              options={{ 
+                responsive: true, 
+                plugins: { 
+                  legend: { display: false } 
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                  },
+                  x: {
+                    grid: { display: false }
+                  }
+                }
+              }} 
+            />
           </motion.div>
         )}
       </div>
