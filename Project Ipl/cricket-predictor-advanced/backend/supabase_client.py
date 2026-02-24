@@ -1,10 +1,20 @@
-"""
-Supabase Configuration and Client
-Handles connection to Supabase for user authentication and data storage.
+﻿"""
+Supabase Client for IPL Cricket Predictor
+Handles user management via direct Supabase PostgreSQL database.
+
+Features:
+- User signup/login with email and password
+- Username-based authentication (no email verification needed!)
+- Token management
+- Referral system
+- Cloud-based PostgreSQL storage (direct table access)
 """
 
-import os
 from supabase import create_client, Client
+from datetime import datetime
+import uuid
+import hashlib
+import secrets
 
 # Supabase credentials
 SUPABASE_URL = "https://jbgrchrnhhvzmnwsqtbs.supabase.co"
@@ -18,11 +28,26 @@ def get_supabase() -> Client:
     return supabase
 
 
+# ==================== Password Hashing ====================
+
+def hash_password(password: str, salt: str = None) -> tuple:
+    """Hash password with salt using SHA-256"""
+    if salt is None:
+        salt = secrets.token_hex(16)
+    pwd_hash = hashlib.sha256(f"{password}{salt}".encode()).hexdigest()
+    return pwd_hash, salt
+
+def verify_password(password: str, pwd_hash: str, salt: str) -> bool:
+    """Verify password against hash"""
+    check_hash, _ = hash_password(password, salt)
+    return check_hash == pwd_hash
+
+
 # ==================== User Authentication ====================
 
 def signup_user(email: str, password: str, display_name: str = None, username: str = None):
     """
-    Register a new user with Supabase Auth and create profile in users table.
+    Register a new user directly in Supabase users table (no email verification).
     
     Args:
         email: User's email address
@@ -34,108 +59,110 @@ def signup_user(email: str, password: str, display_name: str = None, username: s
         dict with user data or error
     """
     try:
-        # Sign up with Supabase Auth
-        auth_response = supabase.auth.sign_up({
-            "email": email,
-            "password": password,
-            "options": {
-                "data": {
-                    "display_name": display_name or username or email.split("@")[0],
-                    "username": username or email.split("@")[0]
-                }
-            }
-        })
+        # Check if email already exists
+        email_check = supabase.table("users").select("id").eq("email", email).execute()
+        if email_check.data and len(email_check.data) > 0:
+            return {"ok": False, "error": "email already registered"}
         
-        if auth_response.user:
-            user_id = auth_response.user.id
-            
-            # Create user profile in users table
-            profile_data = {
-                "id": user_id,
-                "email": email,
-                "username": username or email.split("@")[0],
-                "display_name": display_name or username or email.split("@")[0],
-                "tokens": 100,  # Default tokens
-                "referral_code": user_id[:8].upper(),
-                "is_active": True
-            }
-            
-            # Insert into users table
-            profile_response = supabase.table("users").insert(profile_data).execute()
-            
+        # Check if username already exists
+        final_username = username or email.split("@")[0]
+        username_check = supabase.table("users").select("id").eq("username", final_username).execute()
+        if username_check.data and len(username_check.data) > 0:
+            return {"ok": False, "error": "username exists"}
+        
+        # Hash password
+        pwd_hash, salt = hash_password(password)
+        
+        # Generate user ID and referral code
+        user_id = str(uuid.uuid4())
+        referral_code = user_id[:8].upper()
+        
+        # Create user profile in users table
+        profile_data = {
+            "id": user_id,
+            "email": email,
+            "username": final_username,
+            "display_name": display_name or final_username,
+            "password_hash": pwd_hash,
+            "password_salt": salt,
+            "tokens": 100,
+            "referral_code": referral_code,
+            "is_active": True,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        # Insert into Supabase users table
+        result = supabase.table("users").insert(profile_data).execute()
+        
+        if result.data:
+            print(f"[SUPABASE] User {final_username} registered in cloud database!")
             return {
                 "ok": True,
                 "user": {
                     "id": user_id,
                     "email": email,
-                    "username": profile_data["username"],
+                    "username": final_username,
                     "display_name": profile_data["display_name"],
                     "tokens": profile_data["tokens"],
-                    "referral_code": profile_data["referral_code"]
-                },
-                "session": auth_response.session
+                    "referral_code": referral_code
+                }
             }
         else:
-            return {"ok": False, "error": "Signup failed"}
+            return {"ok": False, "error": "Failed to create user"}
             
     except Exception as e:
         error_msg = str(e)
-        if "already registered" in error_msg.lower() or "already exists" in error_msg.lower():
-            return {"ok": False, "error": "email already registered"}
-        if "user_username_key" in error_msg.lower():
-            return {"ok": False, "error": "username exists"}
         print(f"Supabase signup error: {e}")
+        if "duplicate" in error_msg.lower() or "unique" in error_msg.lower():
+            if "email" in error_msg.lower():
+                return {"ok": False, "error": "email already registered"}
+            if "username" in error_msg.lower():
+                return {"ok": False, "error": "username exists"}
         return {"ok": False, "error": str(e)}
 
 
 def login_user(email: str, password: str):
     """
-    Authenticate user with Supabase Auth.
+    Authenticate user directly from Supabase users table.
     
     Args:
-        email: User's email or username
+        email: User's email
         password: User's password
     
     Returns:
-        dict with user data and session or error
+        dict with user data or error
     """
     try:
-        # Try to login with email
-        auth_response = supabase.auth.sign_in_with_password({
-            "email": email,
-            "password": password
-        })
+        # Find user by email
+        result = supabase.table("users").select("*").eq("email", email).execute()
         
-        if auth_response.user:
-            user_id = auth_response.user.id
-            
-            # Get user profile from users table
-            profile = supabase.table("users").select("*").eq("id", user_id).single().execute()
-            
-            user_data = profile.data if profile.data else {
-                "id": user_id,
-                "email": auth_response.user.email,
-                "username": auth_response.user.user_metadata.get("username", email.split("@")[0]),
-                "display_name": auth_response.user.user_metadata.get("display_name", email.split("@")[0]),
-                "tokens": 100,
-                "referral_code": user_id[:8].upper()
-            }
-            
-            # Update last_login
-            supabase.table("users").update({"last_login": "now()"}).eq("id", user_id).execute()
-            
-            return {
-                "ok": True,
-                "user": user_data,
-                "token": auth_response.session.access_token if auth_response.session else None
-            }
-        else:
-            return {"ok": False, "error": "Invalid credentials"}
+        if not result.data or len(result.data) == 0:
+            return {"ok": False, "error": "Invalid email or password"}
+        
+        user = result.data[0]
+        
+        # Verify password
+        if not verify_password(password, user.get("password_hash", ""), user.get("password_salt", "")):
+            return {"ok": False, "error": "Invalid email or password"}
+        
+        # Update last_login
+        supabase.table("users").update({"last_login": datetime.utcnow().isoformat()}).eq("id", user["id"]).execute()
+        
+        print(f"[SUPABASE] User {user['username']} logged in!")
+        return {
+            "ok": True,
+            "user": {
+                "id": user["id"],
+                "email": user["email"],
+                "username": user["username"],
+                "display_name": user.get("display_name", user["username"]),
+                "tokens": user.get("tokens", 100),
+                "referral_code": user.get("referral_code", "")
+            },
+            "token": user["id"]
+        }
             
     except Exception as e:
-        error_msg = str(e).lower()
-        if "invalid" in error_msg or "credentials" in error_msg:
-            return {"ok": False, "error": "Invalid email or password"}
         print(f"Supabase login error: {e}")
         return {"ok": False, "error": "Login failed"}
 
@@ -143,188 +170,157 @@ def login_user(email: str, password: str):
 def login_with_username(username: str, password: str):
     """
     Login using username instead of email.
-    First looks up the email from users table, then authenticates.
     
     Args:
         username: User's username
         password: User's password
     
     Returns:
-        dict with user data and session or error
+        dict with user data or error
     """
     try:
-        # First, find user by username to get email
-        user_lookup = supabase.table("users").select("email").eq("username", username).single().execute()
+        # Find user by username
+        result = supabase.table("users").select("*").eq("username", username).execute()
         
-        if not user_lookup.data:
+        if not result.data or len(result.data) == 0:
             return {"ok": False, "error": "User not found"}
         
-        email = user_lookup.data["email"]
+        user = result.data[0]
         
-        # Now login with email
-        return login_user(email, password)
+        # Verify password
+        if not verify_password(password, user.get("password_hash", ""), user.get("password_salt", "")):
+            return {"ok": False, "error": "Invalid password"}
         
+        # Update last_login
+        supabase.table("users").update({"last_login": datetime.utcnow().isoformat()}).eq("id", user["id"]).execute()
+        
+        print(f"[SUPABASE] User {user['username']} logged in!")
+        return {
+            "ok": True,
+            "user": {
+                "id": user["id"],
+                "email": user["email"],
+                "username": user["username"],
+                "display_name": user.get("display_name", user["username"]),
+                "tokens": user.get("tokens", 100),
+                "referral_code": user.get("referral_code", "")
+            },
+            "token": user["id"]
+        }
+            
     except Exception as e:
-        print(f"Username login error: {e}")
+        print(f"Supabase login error: {e}")
         return {"ok": False, "error": "Login failed"}
 
 
-def logout_user(access_token: str = None):
-    """Sign out user"""
-    try:
-        supabase.auth.sign_out()
-        return {"ok": True}
-    except Exception as e:
-        print(f"Logout error: {e}")
-        return {"ok": False, "error": str(e)}
-
-
 def get_user_by_id(user_id: str):
-    """Get user profile by ID"""
+    """Get user profile by ID from Supabase"""
     try:
-        response = supabase.table("users").select("*").eq("id", user_id).single().execute()
-        if response.data:
-            return {"ok": True, "user": response.data}
+        result = supabase.table("users").select("*").eq("id", user_id).execute()
+        if result.data and len(result.data) > 0:
+            user = result.data[0]
+            return {
+                "ok": True,
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "username": user["username"],
+                    "display_name": user.get("display_name", user["username"]),
+                    "tokens": user.get("tokens", 100),
+                    "referral_code": user.get("referral_code", "")
+                }
+            }
         return {"ok": False, "error": "User not found"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 
-def get_user_by_username(username: str):
-    """Get user profile by username"""
+# ==================== Token Management ====================
+
+def add_tokens(user_id: str, amount: int) -> dict:
+    """Add tokens to user account"""
     try:
-        response = supabase.table("users").select("*").eq("username", username).single().execute()
-        if response.data:
-            # Remove sensitive fields
-            user_data = dict(response.data)
-            user_data.pop("password_hash", None)
-            user_data.pop("salt", None)
-            return {"ok": True, "user": user_data}
-        return {"ok": False, "error": "User not found"}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-
-def update_user_tokens(user_id: str, tokens: int):
-    """Update user's token balance"""
-    try:
-        response = supabase.table("users").update({"tokens": tokens}).eq("id", user_id).execute()
-        return {"ok": True, "tokens": tokens}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-
-def deduct_tokens(user_id: str, amount: int = 1):
-    """Deduct tokens from user's balance"""
-    try:
-        # Get current tokens
-        user = supabase.table("users").select("tokens").eq("id", user_id).single().execute()
+        user = supabase.table("users").select("tokens").eq("id", user_id).execute()
         if not user.data:
             return {"ok": False, "error": "User not found"}
         
-        current_tokens = user.data["tokens"]
+        current_tokens = user.data[0].get("tokens", 0)
+        new_tokens = current_tokens + amount
+        
+        supabase.table("users").update({"tokens": new_tokens}).eq("id", user_id).execute()
+        
+        return {"ok": True, "tokens": new_tokens}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+def deduct_tokens(user_id: str, amount: int) -> dict:
+    """Deduct tokens from user account"""
+    try:
+        user = supabase.table("users").select("tokens").eq("id", user_id).execute()
+        if not user.data:
+            return {"ok": False, "error": "User not found"}
+        
+        current_tokens = user.data[0].get("tokens", 0)
         if current_tokens < amount:
             return {"ok": False, "error": "Insufficient tokens"}
         
-        new_balance = current_tokens - amount
-        supabase.table("users").update({"tokens": new_balance}).eq("id", user_id).execute()
+        new_tokens = current_tokens - amount
+        supabase.table("users").update({"tokens": new_tokens}).eq("id", user_id).execute()
         
-        return {"ok": True, "tokens": new_balance}
+        return {"ok": True, "tokens": new_tokens}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 
-def add_tokens(user_id: str, amount: int):
-    """Add tokens to user's balance"""
+def get_tokens(user_id: str) -> dict:
+    """Get user's current token balance"""
     try:
-        # Get current tokens
-        user = supabase.table("users").select("tokens").eq("id", user_id).single().execute()
-        if not user.data:
-            return {"ok": False, "error": "User not found"}
-        
-        new_balance = user.data["tokens"] + amount
-        supabase.table("users").update({"tokens": new_balance}).eq("id", user_id).execute()
-        
-        return {"ok": True, "tokens": new_balance}
+        user = supabase.table("users").select("tokens").eq("id", user_id).execute()
+        if user.data:
+            return {"ok": True, "tokens": user.data[0].get("tokens", 0)}
+        return {"ok": False, "error": "User not found"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 
 # ==================== Referral System ====================
 
-def apply_referral(user_id: str, referral_code: str):
-    """Apply referral code and give bonus to both users"""
+def apply_referral(user_id: str, referral_code: str) -> dict:
+    """Apply a referral code to give bonus tokens to both users"""
     try:
-        # Find referrer by code
-        referrer = supabase.table("users").select("*").eq("referral_code", referral_code).single().execute()
-        
+        # Find the referrer by referral code
+        referrer = supabase.table("users").select("*").eq("referral_code", referral_code.upper()).execute()
         if not referrer.data:
             return {"ok": False, "error": "Invalid referral code"}
         
-        if referrer.data["id"] == user_id:
+        referrer_data = referrer.data[0]
+        
+        # Can't refer yourself
+        if referrer_data["id"] == user_id:
             return {"ok": False, "error": "Cannot use your own referral code"}
         
-        # Update referred user
-        supabase.table("users").update({"referred_by": referral_code}).eq("id", user_id).execute()
+        # Check if user already used a referral
+        user = supabase.table("users").select("referred_by").eq("id", user_id).execute()
+        if user.data and user.data[0].get("referred_by"):
+            return {"ok": False, "error": "Referral already applied"}
         
-        # Give bonus tokens to both
-        add_tokens(user_id, 50)  # Bonus for new user
-        add_tokens(referrer.data["id"], 25)  # Bonus for referrer
+        # Update user's referred_by field
+        supabase.table("users").update({"referred_by": referrer_data["id"]}).eq("id", user_id).execute()
         
-        return {"ok": True, "message": "Referral applied! You earned 50 bonus tokens."}
+        # Add bonus tokens to both users (50 each)
+        add_tokens(user_id, 50)
+        add_tokens(referrer_data["id"], 50)
+        
+        return {"ok": True, "message": "Referral applied! Both users received 50 bonus tokens"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 
-# ==================== Initialization ====================
-
-def create_users_table_sql():
-    """
-    SQL to create users table in Supabase.
-    Run this in Supabase SQL Editor.
-    """
-    return """
-    -- Create users table
-    CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-        email TEXT UNIQUE NOT NULL,
-        username TEXT UNIQUE NOT NULL,
-        display_name TEXT NOT NULL,
-        tokens INTEGER DEFAULT 100,
-        referral_code TEXT UNIQUE,
-        referred_by TEXT,
-        is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        last_login TIMESTAMP WITH TIME ZONE
-    );
-
-    -- Create index on username for faster lookups
-    CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-    CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code);
-
-    -- Enable Row Level Security
-    ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-
-    -- Policy: Users can read their own data
-    CREATE POLICY "Users can view own profile" ON users
-        FOR SELECT USING (auth.uid() = id);
-
-    -- Policy: Users can update their own data
-    CREATE POLICY "Users can update own profile" ON users
-        FOR UPDATE USING (auth.uid() = id);
-
-    -- Policy: Allow insert during signup
-    CREATE POLICY "Enable insert for signup" ON users
-        FOR INSERT WITH CHECK (true);
-
-    -- Policy: Allow service role full access
-    CREATE POLICY "Service role has full access" ON users
-        USING (current_setting('request.jwt.claim.role', true) = 'service_role');
-    """
-
-
-if __name__ == "__main__":
-    print("Supabase Configuration")
-    print(f"URL: {SUPABASE_URL}")
-    print("\n--- SQL to create users table ---")
-    print(create_users_table_sql())
+def get_all_users():
+    """Get all users from Supabase (admin function)"""
+    try:
+        result = supabase.table("users").select("id, email, username, display_name, tokens, referral_code, is_active, created_at").execute()
+        return {"ok": True, "users": result.data}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
