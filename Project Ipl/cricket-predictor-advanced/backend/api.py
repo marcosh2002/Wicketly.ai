@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import joblib
+import pickle
 import pandas as pd
 import numpy as np
 import os
@@ -22,6 +23,8 @@ from unified_db import (
     init_db, get_db, User, create_user, get_user_by_username,
     authenticate_user, deduct_tokens, add_tokens, hash_password, verify_password
 )
+# Supabase integration for cloud authentication
+import supabase_client
 
 # Team name mapping for user-friendly input
 TEAM_NAME_MAP = {
@@ -259,7 +262,8 @@ try:
     if os.path.exists(LIVE_MODEL_PATH):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            live_bundle = joblib.load(LIVE_MODEL_PATH)
+            with open(LIVE_MODEL_PATH, "rb") as f:
+                live_bundle = pickle.load(f)
             live_predictor_model = live_bundle["model"]
             live_predictor_features = live_bundle["feature_cols"]
         print("✓ Live Predictor loaded successfully (96%+ accuracy)")
@@ -527,11 +531,11 @@ def predict_live_endpoint(request: LivePredictionRequest):
         
         # Get prediction probabilities
         win_proba = live_predictor_model.predict_proba(features)[0]
-        prediction = live_predictor_model.predict(features)[0]
+        prediction = int(live_predictor_model.predict(features)[0])
         
-        # Determine result
-        chaser_win_prob = win_proba[1] * 100
-        chaser_lose_prob = win_proba[0] * 100
+        # Determine result - convert numpy to Python float for JSON serialization
+        chaser_win_prob = float(win_proba[1]) * 100
+        chaser_lose_prob = float(win_proba[0]) * 100
         
         result = {
             "batting_team": request.batting_team,
@@ -947,44 +951,50 @@ def _generate_referral_code(existing_codes: set):
 
 @app.post("/users/register")
 def register_user(data: dict, db = Depends(get_db)):
-    """Register a new user using unified database"""
+    """Register a new user using Supabase cloud database"""
     
     username = data.get("username", "").strip()
     password = data.get("password", "").strip()
     display_name = data.get("display_name", username)
+    email = data.get("email", "").strip()
+    referral_code = data.get("referral_code", "").strip()
     
     if not username:
         return {"ok": False, "error": "username is required"}
     if not password:
         return {"ok": False, "error": "password is required"}
+    if not email:
+        email = f"{username}@wicketly.ai"
     
-    try:
-        user = create_user(
-            db,
-            username=username,
-            display_name=display_name,
-            password=password,
-            email=f"{username}@cricket.local"
-        )
+    # Register in Supabase cloud database
+    result = supabase_client.signup_user(
+        email=email,
+        password=password,
+        display_name=display_name,
+        username=username
+    )
+    
+    if result.get("ok"):
+        # Apply referral if provided
+        if referral_code and result.get("user", {}).get("id"):
+            supabase_client.apply_referral(result["user"]["id"], referral_code)
         
         return {
             "ok": True,
-            "user": user.to_dict(),
-            "token": str(uuid.uuid4())
+            "user": result["user"],
+            "token": result["user"]["id"],
+            "welcome": {
+                "message": f"Welcome to Wicketly.ai, {display_name}! 🏏",
+                "services": ["Match Predictions", "Live Predictions", "Player Analytics", "PVP Mode"]
+            }
         }
-    except ValueError as e:
-        if "already exists" in str(e):
-            return {"ok": False, "error": "username exists"}
-        else:
-            return {"ok": False, "error": str(e)}
-    except Exception as e:
-        print(f"Registration error: {e}")
-        return {"ok": False, "error": "Registration failed"}
+    else:
+        return {"ok": False, "error": result.get("error", "Registration failed")}
 
 
 @app.post("/users/login")
 def login_user(data: dict, db = Depends(get_db)):
-    """Authenticate a user using unified database"""
+    """Authenticate a user using Supabase cloud database"""
     
     username_or_email = data.get("username", "").strip() or data.get("email", "").strip()
     password = data.get("password", "").strip()
@@ -992,22 +1002,20 @@ def login_user(data: dict, db = Depends(get_db)):
     if not username_or_email or not password:
         return {"ok": False, "error": "username and password are required"}
 
-    try:
-        # Authenticate user
-        user = authenticate_user(db, username_or_email, password)
-        
-        if user:
-            return {
-                "ok": True,
-                "user": user.to_dict(),
-                "token": str(uuid.uuid4())
-            }
-        else:
-            return {"ok": False, "error": "Invalid username or password"}
-            
-    except Exception as e:
-        print(f"Login error: {e}")
-        return {"ok": False, "error": "Login failed"}
+    # Login via Supabase cloud database
+    if "@" in username_or_email:
+        result = supabase_client.login_user(username_or_email, password)
+    else:
+        result = supabase_client.login_with_username(username_or_email, password)
+    
+    if result.get("ok"):
+        return {
+            "ok": True,
+            "user": result["user"],
+            "token": result.get("token", result["user"]["id"])
+        }
+    else:
+        return {"ok": False, "error": result.get("error", "Invalid username or password")}
 
 @app.post("/fantasy/recommend")
 def fantasy_recommend(budget: int = 100):
@@ -1029,27 +1037,36 @@ def fantasy_recommend(budget: int = 100):
 # ...existing code...
 @app.get("/users/{username}")
 def get_user(username: str):
-    users = read_json(USERS_FILE)
-    u = next((x for x in users if x["username"] == username), None)
-    if not u:
+    """Get user from Supabase cloud database"""
+    result = supabase_client.supabase.table("users").select("*").eq("username", username).execute()
+    
+    if not result.data or len(result.data) == 0:
         return {"ok": False, "error": "user not found"}
-    safe = dict(u)
-    safe.pop('password_hash', None)
-    safe.pop('salt', None)
+    
+    user = result.data[0]
+    # Remove sensitive fields
+    safe = {
+        "id": user.get("id"),
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "display_name": user.get("display_name"),
+        "tokens": user.get("tokens", 100),
+        "referral_code": user.get("referral_code"),
+        "is_active": user.get("is_active", True),
+        "created_at": user.get("created_at")
+    }
     return {"ok": True, "user": safe}
 
 
 @app.get("/users/{username}/referral")
 def get_referral(username: str, base_url: str = Query(None)):
-    """Return user's referral code and a shareable link.
-
-    Optional `base_url` query param can override the frontend signup base.
-    """
-    users = read_json(USERS_FILE)
-    u = next((x for x in users if x["username"] == username), None)
-    if not u:
+    """Return user's referral code and a shareable link from Supabase."""
+    result = supabase_client.supabase.table("users").select("referral_code").eq("username", username).execute()
+    
+    if not result.data or len(result.data) == 0:
         return {"ok": False, "error": "user not found"}
-    code = u.get('referral_code')
+    
+    code = result.data[0].get('referral_code')
     if not code:
         return {"ok": False, "error": "no referral code found"}
     frontend = base_url or os.environ.get('FRONTEND_URL') or 'http://127.0.0.1:3000'
@@ -1147,14 +1164,17 @@ def admin_list_referrals():
 # ================ BALANCE / TOKEN ENDPOINTS ================
 @app.get("/users/{username}/balance")
 def user_balance(username: str, db = Depends(get_db)):
-    """Return authoritative token balance for a user using SQLite database.
+    """Return authoritative token balance for a user using Supabase.
 
     Response: { ok: True, username, tokens, default_applied: bool }
     """
-    user = get_user_by_username(db, username)
-    if not user:
+    result = supabase_client.supabase.table("users").select("tokens").eq("username", username).execute()
+    
+    if not result.data or len(result.data) == 0:
         return {"ok": False, "error": "user not found"}
-    return {"ok": True, "username": username, "tokens": user.tokens, "default_applied": False}
+    
+    tokens = result.data[0].get("tokens", 100)
+    return {"ok": True, "username": username, "tokens": tokens, "default_applied": False}
 
 
 @app.post("/_admin/ensure_default_tokens")
@@ -1177,50 +1197,49 @@ def admin_ensure_default_tokens():
 # ==================== SPIN WHEEL ENDPOINTS ====================
 @app.post("/users/{username}/spin")
 def spin_wheel(username: str, db = Depends(get_db)):
-    """Spin the wheel and get a random reward. Max 2 spins per day using SQLite database."""
-    user = get_user_by_username(db, username)
-    if not user:
+    """Spin the wheel and get a random reward. Max 2 spins per day using Supabase."""
+    # Get user from Supabase
+    result = supabase_client.supabase.table("users").select("*").eq("username", username).execute()
+    
+    if not result.data or len(result.data) == 0:
         return {"ok": False, "error": "user not found"}
     
-    # Check and track daily spins
-    # For simplicity, we'll use a basic spin counter that resets daily
-    # In production, you'd want a dedicated spin_history table
+    user = result.data[0]
     today = datetime.utcnow().date().isoformat()
-    
-    # Get spin count from user's metadata (we'll store in a simple way)
-    # Since we don't have a dedicated field, we'll track spins differently
-    # For now, let's assume max 2 spins per day (can be enhanced later)
     
     # Random reward: 5, 15, 50, or 100 tokens
     rewards = [5, 15, 50, 100]
     reward = random.choice(rewards)
     
-    # Add tokens to user
-    user.tokens += reward
-    db.commit()
-    db.refresh(user)
+    # Add tokens to user in Supabase
+    new_tokens = user.get("tokens", 0) + reward
+    supabase_client.supabase.table("users").update({"tokens": new_tokens}).eq("username", username).execute()
     
     return {
         "ok": True,
         "reward": reward,
-        "tokens_remaining": user.tokens,
+        "tokens_remaining": new_tokens,
         "spins_left": 1  # Simplified: always return 1 spin left
     }
 
 @app.get("/users/{username}/spin_status")
 def get_spin_status(username: str, db = Depends(get_db)):
-    """Get user's spin status using SQLite database."""
-    user = get_user_by_username(db, username)
-    if not user:
+    """Get user's spin status using Supabase."""
+    # Get user from Supabase
+    result = supabase_client.supabase.table("users").select("*").eq("username", username).execute()
+    
+    if not result.data or len(result.data) == 0:
         return {"ok": False, "error": "user not found"}
     
+    user = result.data[0]
     today = datetime.utcnow().date().isoformat()
     
     return {
         "ok": True,
         "spins_left": 2,  # Simplified: always return 2 spins available
         "last_reward": None,
-        "date": today
+        "date": today,
+        "tokens": user.get("tokens", 0)
     }
 
 # ...existing code...
