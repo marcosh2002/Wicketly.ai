@@ -1,0 +1,23 @@
+
+\begin{table}[h]
+\centering
+\caption{Comparison of ML Algorithms for IPL Match Prediction}
+\label{tab:ml_comparison}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Algorithm} & \textbf{Pre-Match} & \textbf{Live Match} & \textbf{Pre F1} & \textbf{Live F1} & \textbf{Avg Acc} \\
+ & \textbf{Acc (\%)} & \textbf{Acc (\%)} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(\%)} \\
+\hline
+Logistic Regression & 60.09 & 95.29 & 57.92 & 95.64 & 77.69 \\
+SVM (RBF) & 57.51 & 95.51 & 56.39 & 95.87 & 76.51 \\
+AdaBoost & 58.80 & 94.12 & 55.14 & 94.49 & 76.46 \\
+Random Forest & 55.36 & 95.92 & 53.15 & 96.24 & 75.64 \\
+XGBoost & 54.08 & 96.06 & 50.69 & 96.36 & 75.07 \\
+Neural Network & 54.08 & 95.96 & 53.28 & 96.29 & 75.02 \\
+Decision Tree & 54.94 & 94.53 & 47.24 & 94.90 & 74.74 \\
+Gradient Boosting & 53.22 & 95.75 & 49.77 & 96.07 & 74.48 \\
+K-Nearest Neighbors & 54.94 & 93.77 & 54.94 & 94.24 & 74.35 \\
+Naive Bayes & 58.37 & 88.85 & 58.01 & 90.20 & 73.61 \\
+\hline
+\end{tabular}
+\end{table}

@@ -1,0 +1,22 @@
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Machine Learning Algorithms for IPL Match Prediction}
+\label{tab:ml_comparison}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Algorithm} & \textbf{Test Acc} & \textbf{CV Mean} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\hline
+Logistic Regression & 60.09\% & 61.56\% & 61.54\% & 54.70\% & 57.92\% \\
+AdaBoost & 58.80\% & 59.33\% & 60.82\% & 50.43\% & 55.14\% \\
+Naive Bayes (Gaussian) & 58.37\% & 61.73\% & 58.77\% & 57.26\% & 58.01\% \\
+Support Vector Machine & 57.51\% & 59.50\% & 58.18\% & 54.70\% & 56.39\% \\
+Random Forest & 55.36\% & 56.23\% & 56.19\% & 50.43\% & 53.15\% \\
+Decision Tree & 54.94\% & 53.65\% & 57.32\% & 40.17\% & 47.24\% \\
+K-Nearest Neighbors & 54.94\% & 56.48\% & 55.17\% & 54.70\% & 54.94\% \\
+XGBoost & 54.08\% & 55.20\% & 55.00\% & 47.01\% & 50.69\% \\
+Neural Network (MLP) & 54.08\% & 55.89\% & 54.46\% & 52.14\% & 53.28\% \\
+Gradient Boosting & 53.22\% & 53.31\% & 54.00\% & 46.15\% & 49.77\% \\
+\hline
+\end{tabular}
+\end{table}

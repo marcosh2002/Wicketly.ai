@@ -176,58 +176,105 @@ export default function Home() {
       <Box sx={{ color: '#fff', py: 12, position: 'relative', zIndex: 1 }}>
         <Container maxWidth='xl'>
           <Box sx={{ textAlign: 'center', mb: 8 }}>
-            <Typography variant='h2' sx={{ fontWeight: 'bold', mb: 3, color: '#fff', fontSize: '2.8rem' }}>
+            <Typography variant='h2' sx={{ 
+              fontWeight: 'bold', 
+              mb: 3, 
+              color: '#fff', 
+              fontSize: '2.8rem',
+              background: 'linear-gradient(135deg, #10b981 0%, #0ea5e9 50%, #8b5cf6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
               Why Choose Wicketly.AI?
             </Typography>
-            <Typography variant='h6' sx={{ color: '#aaa', fontWeight: 400, fontSize: '1.1rem' }}>
+            <Typography variant='h6' sx={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400, fontSize: '1.1rem' }}>
               Discover the features that make Wicketly.AI the ultimate cricket analytics platform
             </Typography>
           </Box>
           <Grid container spacing={3} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 3 }}>
             {features.map((feature, idx) => (
               <Box key={idx} sx={{ 
-                bgcolor: '#fff', 
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 165, 233, 0.06) 50%, rgba(139, 92, 246, 0.08) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.15)',
                 p: 3.5, 
-                borderRadius: 3, 
+                borderRadius: '20px', 
                 cursor: 'pointer', 
                 transition: 'all 0.4s ease',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 height: '100%',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                boxShadow: '0 8px 32px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: '20px',
+                  padding: '1px',
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(14, 165, 233, 0.3), rgba(139, 92, 246, 0.3))',
+                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                  pointerEvents: 'none',
+                  opacity: 0.5
+                },
                 '&:hover': { 
                   transform: 'translateY(-8px)', 
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.2)'
+                  boxShadow: '0 20px 40px rgba(16, 185, 129, 0.2), 0 0 60px rgba(16, 185, 129, 0.1)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  '&::before': {
+                    opacity: 1
+                  }
                 } 
               }}>
                 <Box>
-                  <Typography sx={{ fontSize: '3rem', mb: 2.5, textAlign: 'center' }}>
-                    {feature.icon}
-                  </Typography>
-                  <Typography variant='h6' sx={{ fontWeight: '700', mb: 2, color: '#0d3e65', textAlign: 'center', fontSize: '1.05rem', lineHeight: 1.3 }}>
+                  <Box sx={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '16px',
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 20px',
+                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.2)'
+                  }}>
+                    <Typography sx={{ fontSize: '2rem' }}>
+                      {feature.icon}
+                    </Typography>
+                  </Box>
+                  <Typography variant='h6' sx={{ fontWeight: '700', mb: 2, color: '#fff', textAlign: 'center', fontSize: '1.05rem', lineHeight: 1.3 }}>
                     {feature.title}
                   </Typography>
-                  <Typography variant='body2' sx={{ mb: 3, color: '#555', lineHeight: 1.6, textAlign: 'center', fontSize: '0.9rem' }}>
+                  <Typography variant='body2' sx={{ mb: 3, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, textAlign: 'center', fontSize: '0.9rem' }}>
                     {feature.description}
                   </Typography>
                 </Box>
-                <Box sx={{ textAlign: 'center', pt: 2.5, borderTop: '1px solid #e0e0e0' }}>
+                <Box sx={{ textAlign: 'center', pt: 2.5, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <Button
                     onClick={(e) => { e.stopPropagation(); handleFeatureClick(feature); }}
                     disabled={feature.status === 'coming-soon'}
                     variant='text'
                     sx={{ 
-                      color: '#ff6600', 
+                      color: '#10b981', 
                       fontWeight: '600', 
                       fontSize: '0.9rem', 
                       textTransform: 'none', 
                       transition: '0.3s all',
                       '&:hover': { 
-                        color: '#ff8533'
+                        color: '#34d399',
+                        textShadow: '0 0 10px rgba(16, 185, 129, 0.5)'
                       },
                       '&:disabled': {
-                        color: '#ccc'
+                        color: 'rgba(255,255,255,0.3)'
                       }
                     }}
                   >
@@ -241,94 +288,191 @@ export default function Home() {
       </Box>
 
       <Container maxWidth='lg' sx={{ py: 8, position: 'relative', zIndex: 1 }}>
-        <Typography variant='h2' sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center', color: '#fff' }}>
+        <Typography variant='h2' sx={{ 
+          fontWeight: 'bold', 
+          mb: 3, 
+          textAlign: 'center', 
+          color: '#fff',
+          background: 'linear-gradient(135deg, #10b981 0%, #0ea5e9 50%, #8b5cf6 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
           Cricket Formats
         </Typography>
-        <Typography variant='h6' sx={{ textAlign: 'center', mb: 8, color: '#ccc', fontWeight: 500 }}>
+        <Typography variant='h6' sx={{ textAlign: 'center', mb: 8, color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
           Explore analytics and predictions for all major cricket formats
         </Typography>
         <Grid container spacing={3} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
-          {cricketFormats.map((format, idx) => (
-            <Box key={idx} sx={{ p: 4, textAlign: 'center', cursor: 'pointer', transition: '0.4s all ease', borderRadius: 2, boxShadow: 2, bgcolor: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', '&:hover': { boxShadow: 6, transform: 'translateY(-8px)', bgcolor: '#f5f5f5' } }}>
-              <Typography sx={{ fontSize: '2.5rem', mb: 2 }}>{format.icon}</Typography>
-              <Typography sx={{ color: '#27ae60', fontWeight: 'bold', fontSize: '0.9rem', mb: 1, textTransform: 'uppercase' }}>
-                {format.status}
-              </Typography>
-              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#0d3e65' }}>
-                {format.title}
-              </Typography>
-              <Typography variant='body2' sx={{ mb: 3, color: '#666', lineHeight: 1.6, flex: 1 }}>
-                {format.description}
-              </Typography>
-              <Typography sx={{ color: '#ff6600', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' }}>
-                {format.link}
-              </Typography>
-            </Box>
-          ))}
+          {cricketFormats.map((format, idx) => {
+            const isAvailable = format.status === 'Available Now';
+            const borderColor = isAvailable ? 'rgba(16, 185, 129, 0.4)' : 'rgba(139, 92, 246, 0.3)';
+            const glowColor = isAvailable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(139, 92, 246, 0.15)';
+            return (
+              <Box key={idx} sx={{ 
+                p: 4, 
+                textAlign: 'center', 
+                cursor: 'pointer', 
+                transition: '0.4s all ease', 
+                borderRadius: '24px', 
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 165, 233, 0.06) 50%, rgba(139, 92, 246, 0.08) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: `1px solid ${borderColor}`,
+                boxShadow: `0 8px 32px ${glowColor}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+                display: 'flex', 
+                flexDirection: 'column', 
+                justifyContent: 'space-between', 
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '-50%',
+                  right: '-50%',
+                  width: '100%',
+                  height: '100%',
+                  background: isAvailable 
+                    ? 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%)'
+                    : 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
+                  pointerEvents: 'none'
+                },
+                '&:hover': { 
+                  boxShadow: `0 20px 40px ${glowColor}, 0 0 60px ${glowColor}`, 
+                  transform: 'translateY(-8px)',
+                  border: `1px solid ${isAvailable ? 'rgba(16, 185, 129, 0.6)' : 'rgba(139, 92, 246, 0.5)'}`
+                } 
+              }}>
+                <Typography sx={{ fontSize: '2.5rem', mb: 2, position: 'relative', zIndex: 1 }}>{format.icon}</Typography>
+                <Typography sx={{ 
+                  color: isAvailable ? '#10b981' : '#8b5cf6', 
+                  fontWeight: 'bold', 
+                  fontSize: '0.85rem', 
+                  mb: 1, 
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  position: 'relative',
+                  zIndex: 1,
+                  textShadow: isAvailable ? '0 0 10px rgba(16, 185, 129, 0.5)' : '0 0 10px rgba(139, 92, 246, 0.5)'
+                }}>
+                  {format.status}
+                </Typography>
+                <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#fff', position: 'relative', zIndex: 1 }}>
+                  {format.title}
+                </Typography>
+                <Typography variant='body2' sx={{ mb: 3, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, flex: 1, position: 'relative', zIndex: 1 }}>
+                  {format.description}
+                </Typography>
+                <Typography sx={{ 
+                  color: '#10b981', 
+                  fontWeight: 'bold', 
+                  cursor: 'pointer', 
+                  fontSize: '0.95rem',
+                  position: 'relative',
+                  zIndex: 1,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    textShadow: '0 0 10px rgba(16, 185, 129, 0.5)'
+                  }
+                }}>
+                  {format.link}
+                </Typography>
+              </Box>
+            );
+          })}
         </Grid>
       </Container>
 
       <Box sx={{ py: 12, position: 'relative', zIndex: 1 }}>
         <Container maxWidth='xl'>
           <Box sx={{ mb: 8, textAlign: 'center' }}>
-            <Typography variant='h2' sx={{ fontWeight: 'bold', mb: 2, color: '#fff', fontSize: '2.8rem' }}>
+            <Typography variant='h2' sx={{ 
+              fontWeight: 'bold', 
+              mb: 2, 
+              fontSize: '2.8rem',
+              background: 'linear-gradient(135deg, #10b981 0%, #0ea5e9 50%, #8b5cf6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
               IPL Statistics
             </Typography>
-            <Typography variant='h6' sx={{ color: '#aaa', fontWeight: 400, fontSize: '1.1rem' }}>
+            <Typography variant='h6' sx={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400, fontSize: '1.1rem' }}>
               Comprehensive data visualization and analysis
             </Typography>
           </Box>
           <Grid container spacing={3} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
             <Box sx={{ 
               p: 4, 
-              boxShadow: '0 8px 24px rgba(255, 102, 0, 0.15)', 
-              border: '3px solid #ff6600', 
-              bgcolor: '#fff', 
-              borderRadius: 2,
+              background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(249, 115, 22, 0.3)',
+              boxShadow: '0 8px 32px rgba(249, 115, 22, 0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
+              borderRadius: '20px',
               display: 'flex', 
-              flexDirection: 'column'
+              flexDirection: 'column',
+              transition: 'all 0.4s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 20px 40px rgba(249, 115, 22, 0.25), 0 0 60px rgba(249, 115, 22, 0.1)',
+                border: '1px solid rgba(249, 115, 22, 0.5)'
+              }
             }}>
-              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#ff6600', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#f97316', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
                 📊 Team Runs
               </Typography>
               {teamRunsData.slice(0, 5).map((data, idx) => (
-                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid #f0f0f0' }}>
-                  <Typography sx={{ fontWeight: 600, color: '#1a1a2e', fontSize: '0.95rem' }}>{data.team}</Typography>
-                  <Typography sx={{ fontWeight: 'bold', color: '#ff6600', fontSize: '0.95rem' }}>{data.runs}</Typography>
+                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Typography sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>{data.team}</Typography>
+                  <Typography sx={{ fontWeight: 'bold', color: '#f97316', fontSize: '0.95rem' }}>{data.runs}</Typography>
                 </Box>
               ))}
             </Box>
 
             <Box sx={{ 
               p: 4, 
-              boxShadow: '0 8px 24px rgba(39, 174, 96, 0.15)', 
-              border: '3px solid #27ae60', 
-              bgcolor: '#fff', 
-              borderRadius: 2,
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              boxShadow: '0 8px 32px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
+              borderRadius: '20px',
               display: 'flex', 
-              flexDirection: 'column'
+              flexDirection: 'column',
+              transition: 'all 0.4s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 20px 40px rgba(16, 185, 129, 0.25), 0 0 60px rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.5)'
+              }
             }}>
-              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#27ae60', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#10b981', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
                 🏆 Win Rates
               </Typography>
               {winRateData.slice(0, 5).map((data, idx) => (
-                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid #f0f0f0' }}>
-                  <Typography sx={{ fontWeight: 600, color: '#1a1a2e', fontSize: '0.95rem' }}>{data.team}</Typography>
-                  <Typography sx={{ fontWeight: 'bold', color: '#27ae60', fontSize: '0.95rem' }}>{data.wins}</Typography>
+                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Typography sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>{data.team}</Typography>
+                  <Typography sx={{ fontWeight: 'bold', color: '#10b981', fontSize: '0.95rem' }}>{data.wins}</Typography>
                 </Box>
               ))}
             </Box>
 
             <Box sx={{ 
               p: 4, 
-              boxShadow: '0 8px 24px rgba(52, 152, 219, 0.15)', 
-              border: '3px solid #3498db', 
-              bgcolor: '#fff', 
-              borderRadius: 2,
+              background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(14, 165, 233, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(14, 165, 233, 0.3)',
+              boxShadow: '0 8px 32px rgba(14, 165, 233, 0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
+              borderRadius: '20px',
               display: 'flex', 
-              flexDirection: 'column'
+              flexDirection: 'column',
+              transition: 'all 0.4s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 20px 40px rgba(14, 165, 233, 0.25), 0 0 60px rgba(14, 165, 233, 0.1)',
+                border: '1px solid rgba(14, 165, 233, 0.5)'
+              }
             }}>
-              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#3498db', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#0ea5e9', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
                 🎯 Best Economy
               </Typography>
               {[
@@ -338,23 +482,30 @@ export default function Home() {
                 { bowler: 'Axar', economy: '7.1' },
                 { bowler: 'Chahar', economy: '7.3' }
               ].map((data, idx) => (
-                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid #f0f0f0' }}>
-                  <Typography sx={{ fontWeight: 600, color: '#1a1a2e', fontSize: '0.95rem' }}>{data.bowler}</Typography>
-                  <Typography sx={{ fontWeight: 'bold', color: '#3498db', fontSize: '0.95rem' }}>{data.economy}</Typography>
+                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Typography sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>{data.bowler}</Typography>
+                  <Typography sx={{ fontWeight: 'bold', color: '#0ea5e9', fontSize: '0.95rem' }}>{data.economy}</Typography>
                 </Box>
               ))}
             </Box>
 
             <Box sx={{ 
               p: 4, 
-              boxShadow: '0 8px 24px rgba(155, 89, 182, 0.15)', 
-              border: '3px solid #9b59b6', 
-              bgcolor: '#fff', 
-              borderRadius: 2,
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              boxShadow: '0 8px 32px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
+              borderRadius: '20px',
               display: 'flex', 
-              flexDirection: 'column'
+              flexDirection: 'column',
+              transition: 'all 0.4s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 20px 40px rgba(139, 92, 246, 0.25), 0 0 60px rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.5)'
+              }
             }}>
-              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#9b59b6', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 3, color: '#8b5cf6', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
                 ⭐ Highest Scores
               </Typography>
               {[
@@ -364,9 +515,9 @@ export default function Home() {
                 { player: 'Ponting', score: '128' },
                 { player: 'ABD', score: '175*' }
               ].map((data, idx) => (
-                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid #f0f0f0' }}>
-                  <Typography sx={{ fontWeight: 600, color: '#1a1a2e', fontSize: '0.95rem' }}>{data.player}</Typography>
-                  <Typography sx={{ fontWeight: 'bold', color: '#9b59b6', fontSize: '0.95rem' }}>{data.score}</Typography>
+                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, pb: 1.5, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Typography sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>{data.player}</Typography>
+                  <Typography sx={{ fontWeight: 'bold', color: '#8b5cf6', fontSize: '0.95rem' }}>{data.score}</Typography>
                 </Box>
               ))}
             </Box>

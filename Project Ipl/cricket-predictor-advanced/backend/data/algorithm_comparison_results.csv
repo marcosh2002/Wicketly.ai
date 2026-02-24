@@ -1,0 +1,11 @@
+Algorithm,Train Acc (%),Test Acc (%),CV Mean (%),CV Std (%),Precision (%),Recall (%),F1-Score (%),AUC-ROC,Train Time (s),Description
+Logistic Regression,62.9,60.09,61.56,3.53,61.54,54.7,57.92,0.6448,0.008,Linear classifier using log odds
+AdaBoost,63.33,58.8,59.33,3.35,60.82,50.43,55.14,0.6302,0.122,Adaptive boosting with weighted samples
+Naive Bayes (Gaussian),63.44,58.37,61.73,3.63,58.77,57.26,58.01,0.6123,0.002,Probabilistic classifier assuming feature independence
+Support Vector Machine,66.56,57.51,59.5,2.01,58.18,54.7,56.39,0.6081,0.112,Finds optimal hyperplane for classification
+Random Forest,84.95,55.36,56.23,3.13,56.19,50.43,53.15,0.5759,0.123,Ensemble of decision trees with bagging
+Decision Tree,78.28,54.94,53.65,2.98,57.32,40.17,47.24,0.5693,0.006,Tree-based model with if-then-else rules
+K-Nearest Neighbors,70.75,54.94,56.48,4.5,55.17,54.7,54.94,0.5718,0.004,Instance-based learning using k nearest samples
+XGBoost,79.57,54.08,55.2,2.87,55.0,47.01,50.69,0.5696,0.176,Extreme Gradient Boosting with regularization
+Neural Network (MLP),79.46,54.08,55.89,2.25,54.46,52.14,53.28,0.5793,1.05,Multi-layer perceptron with backpropagation
+Gradient Boosting,86.34,53.22,53.31,4.01,54.0,46.15,49.77,0.5794,0.219,Sequential ensemble with gradient descent

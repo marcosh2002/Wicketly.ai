@@ -1,0 +1,11 @@
+Algorithm,Pre-Match Acc (%),Live Acc (%),Pre-Match F1 (%),Live F1 (%),Avg Accuracy (%),Best For
+Logistic Regression,60.09,95.29,57.92,95.64,77.69,Live
+SVM (RBF),57.51,95.51,56.39,95.87,76.51,Live
+AdaBoost,58.8,94.12,55.14,94.49,76.46,Live
+Random Forest,55.36,95.92,53.15,96.24,75.64,Live
+XGBoost,54.08,96.06,50.69,96.36,75.07,Live
+Neural Network,54.08,95.96,53.28,96.29,75.02,Live
+Decision Tree,54.94,94.53,47.24,94.9,74.74,Live
+Gradient Boosting,53.22,95.75,49.77,96.07,74.48,Live
+K-Nearest Neighbors,54.94,93.77,54.94,94.24,74.35,Live
+Naive Bayes,58.37,88.85,58.01,90.2,73.61,Live
